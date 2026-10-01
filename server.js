@@ -53,26 +53,13 @@ app.get('/api/anime', async (req, res) => {
 app.get('/api/all-anime', async (req, res) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
-
-    const data = await jikan(
-      '/anime?page=' + page +
-      '&limit=25' +
-      '&sfw=true' +
-      '&order_by=mal_id' +
-      '&sort=asc'
-    );
-
-    res.json({
-      page,
-      hasNextPage: Boolean(data.pagination?.has_next_page),
-      anime: data.data || []
-    });
+    const data = await jikan(`/anime?page=${page}&limit=25&sfw=true`);
+    res.json(data);
   } catch (error) {
     sendApiError(res, error);
   }
 });
 
-// Search
 app.get('/api/search', async (req, res) => {
   try {
     const q = String(req.query.q || '').trim();
