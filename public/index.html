@@ -267,7 +267,7 @@ async function loadPopular(){
 
     if(!r.ok) throw new Error(d.error || "Failed");
 
-    box.innerHTML=(d.data||[]).map(card).join("");
+    box.innerHTML=(d.anime||d.data||[]).map(card).join("");
   }catch(e){
     box.innerHTML="<div class='empty'>Popular anime load नहीं हो पाया।</div>";
   }
@@ -302,7 +302,7 @@ async function loadAll(reset=false){
 
     if(!r.ok) throw new Error(d.error || "Failed");
 
-    const data=d.data||[];
+    const data=d.anime||d.data||[];
 
     if(reset){
       document.getElementById("all").innerHTML="";
@@ -341,7 +341,7 @@ async function searchAnime(){
 
     if(!r.ok) throw new Error(d.error || "Failed");
 
-    box.innerHTML=(d.data||[]).map(card).join("");
+    box.innerHTML=(d.anime||d.data||[]).map(card).join("");
     document.querySelector(".title:nth-of-type(2)").textContent=
       "🔎 Search Results";
   }catch(e){
