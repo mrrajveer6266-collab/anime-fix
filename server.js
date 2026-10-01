@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 const JIKAN = 'https://api.jikan.moe/v4';
 
@@ -16,160 +17,139 @@ async function jikan(path) {
   return response.json();
 }
 
+// Home / anime catalog
 app.get('/api/anime', async (req, res) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
     const data = await jikan('/top/anime?page=' + page);
 
     res.json({
-      data: data.data || [],
-      pagination: data.pagination || {}
+      page,
+      hasNextPage: Boolean(data.pagination?.has_next_page),
+      anime: data.data || []
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Anime load failed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Anime catalog temporarily unavailable'
+    });
   }
 });
 
+// Anime search
 app.get('/api/search', async (req, res) => {
   try {
-    const q = req.query.q || '';
+    const q = String(req.query.q || '').trim();
     const page = Math.max(1, Number(req.query.page) || 1);
 
-    if (!q.trim()) {
-      return res.json({ data: [], pagination: {} });
+    if (!q) {
+      return res.status(400).json({ error: 'Search text is required' });
     }
 
     const data = await jikan(
-      '/anime?q=' + encodeURIComponent(q) + '&page=' + page
+      '/anime?q=' + encodeURIComponent(q) +
+      '&page=' + page +
+      '&sfw=true'
     );
 
     res.json({
-      data: data.data || [],
-      pagination: data.pagination || {}
+      page,
+      hasNextPage: Boolean(data.pagination?.has_next_page),
+      anime: data.data || []
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Search failed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Search temporarily unavailable'
+    });
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('<!DOCTYPE html>' +
-    '<html lang="hi">' +
-    '<head>' +
-    '<meta charset="UTF-8">' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-    '<title>Anime Fix</title>' +
-    '<style>' +
-    'body{font-family:Arial;background:#101010;color:white;margin:0;padding:20px}' +
-    'h1{text-align:center;color:#ff6600}' +
-    '.search{display:flex;gap:8px;margin-bottom:20px}' +
-    'input{flex:1;padding:12px;border:0;border-radius:8px;font-size:16px}' +
-    'button{padding:12px 18px;border:0;border-radius:8px;background:#ff6600;color:white;font-weight:bold}' +
-    '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:15px}' +
-    '.card{background:#1d1d1d;border-radius:10px;overflow:hidden;cursor:pointer}' +
-    '.card img{width:100%;height:190px;object-fit:cover}' +
-    '.card h3{font-size:14px;padding:8px;margin:0}' +
-    '#status{text-align:center;margin:15px}' +
-    '#more{display:block;margin:25px auto}' +
-    '</style>' +
-    '</head>' +
-    '<body>' +
-    '<h1>Anime Fix</h1>' +
+// Full anime information
+app.get('/api/anime/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
 
-    '<div class="search">' +
-    '<input id="searchInput" placeholder="Search anime...">' +
-    '<button onclick="searchAnime()">Search</button>' +
-    '</div>' +
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid anime ID' });
+    }
 
-    '<div id="status">Anime loading...</div>' +
-    '<div id="animeContainer" class="grid"></div>' +
+    const data = await jikan('/anime/' + id + '/full');
 
-    '<button id="more" onclick="loadMore()">Load More Anime</button>' +
-
-    '<script>' +
-
-    'var page=1;' +
-    'var searchMode=false;' +
-    'var searchText="";' +
-
-    'async function getAnime(p,append){' +
-    'document.getElementById("status").textContent="Anime loading...";' +
-
-    'try{' +
-    'var url=searchMode' +
-    '?"/api/search?q="+encodeURIComponent(searchText)+"&page="+p' +
-    ': "/api/anime?page="+p;' +
-
-    'var r=await fetch(url);' +
-    'var result=await r.json();' +
-
-    'if(!r.ok)throw new Error(result.error||"API error");' +
-
-    'render(result.data||[],append);' +
-
-    'document.getElementById("status").textContent=' +
-    '"Page "+p+" • "+(result.data||[]).length+" anime";' +
-
-    'var more=result.pagination&&result.pagination.has_next_page;' +
-    'document.getElementById("more").style.display=more?"block":"none";' +
-
-    '}catch(e){' +
-    'console.error(e);' +
-    'document.getElementById("status").textContent="Anime load failed";' +
-    '}' +
-    '}' +
-
-    'function render(list,append){' +
-    'var c=document.getElementById("animeContainer");' +
-
-    'if(!append)c.innerHTML="";' +
-
-    'list.forEach(function(a){' +
-    'var card=document.createElement("div");' +
-    'card.className="card";' +
-
-    'var img=(a.images&&a.images.jpg&&a.images.jpg.image_url)||"";' +
-    'var title=a.title||"Unknown Anime";' +
-
-    'card.innerHTML=' +
-    '"<img src=\\"" + img + "\\" alt=\\"" + title + "\\"><h3>"' +
-    '+title+"</h3>";' +
-
-    'c.appendChild(card);' +
-    '});' +
-    '}' +
-
-    'async function loadMore(){' +
-    'page++;' +
-    'await getAnime(page,true);' +
-    '}' +
-
-    'async function searchAnime(){' +
-    'var q=document.getElementById("searchInput").value.trim();' +
-
-    'if(!q){' +
-    'searchMode=false;' +
-    'searchText="";' +
-    'page=1;' +
-    'getAnime(1,false);' +
-    'return;' +
-    '}' +
-
-    'searchMode=true;' +
-    'searchText=q;' +
-    'page=1;' +
-    'getAnime(1,false);' +
-    '}' +
-
-    'getAnime(1,false);' +
-
-    '</script>' +
-    '</body>' +
-    '</html>');
+    res.json(data.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Anime details temporarily unavailable'
+    });
+  }
 });
 
-app.listen(process.env.PORT || 3000, '0.0.0.0', function() {
-  console.log('Anime Fix running on port 3000');
+// Episodes metadata
+app.get('/api/anime/:id/episodes', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const page = Math.max(1, Number(req.query.page) || 1);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid anime ID' });
+    }
+
+    const data = await jikan(
+      '/anime/' + id + '/episodes?page=' + page
+    );
+
+    res.json({
+      page,
+      hasNextPage: Boolean(data.pagination?.has_next_page),
+      episodes: data.data || []
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Episode information temporarily unavailable'
+    });
+  }
+});
+
+// Official/promotional video information when available
+app.get('/api/anime/:id/videos', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid anime ID' });
+    }
+
+    const data = await jikan('/anime/' + id + '/videos');
+
+    res.json({
+      promo: data.data?.promo || [],
+      episodes: data.data?.episodes || []
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Video information temporarily unavailable'
+    });
+  }
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    app: 'Anime Fix'
+  });
+});
+
+// Website
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('Anime Fix running on port ' + PORT);
 });
