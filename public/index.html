@@ -1,418 +1,182 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anime Fix</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:Arial,Helvetica,sans-serif;
-  background:#080b12;
-  color:#fff;
-}
-header{
-  position:sticky;
-  top:0;
-  z-index:20;
-  background:#0d111b;
-  border-bottom:1px solid #202738;
-  padding:14px 5%;
-  display:flex;
-  align-items:center;
-  gap:20px;
-}
-.logo{
-  font-size:25px;
-  font-weight:900;
-  color:#ff3d71;
-  white-space:nowrap;
-}
-.search{
-  flex:1;
-  display:flex;
-  gap:8px;
-}
-.search input{
-  width:100%;
-  padding:12px 15px;
-  border:1px solid #30394d;
-  border-radius:10px;
-  background:#151b28;
-  color:white;
-  outline:none;
-}
-button,select{
-  border:0;
-  border-radius:9px;
-  padding:11px 15px;
-  background:#ff3d71;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
-select{
-  background:#151b28;
-  border:1px solid #30394d;
-}
-main{padding:30px 5% 60px}
-.title{
-  font-size:28px;
-  font-weight:900;
-  margin:25px 0 15px;
-}
-.filters{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-bottom:20px;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:18px;
-}
-.card{
-  background:#111722;
-  border:1px solid #20283a;
-  border-radius:13px;
-  overflow:hidden;
-  cursor:pointer;
-  transition:.2s;
-}
-.card:hover{
-  transform:translateY(-5px);
-  border-color:#ff3d71;
-}
-.poster{
-  width:100%;
-  aspect-ratio:2/3;
-  object-fit:cover;
-  background:#161c28;
-}
-.info{padding:11px}
-.name{
-  font-weight:bold;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.meta{
-  margin-top:7px;
-  color:#9da7ba;
-  font-size:13px;
-}
-.load{
-  display:block;
-  margin:25px auto;
-}
-.empty{
-  color:#8f99ad;
-  padding:30px 0;
-}
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.8);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:50;
-  padding:20px;
-}
-.modalBox{
-  width:min(850px,100%);
-  max-height:90vh;
-  overflow:auto;
-  background:#111722;
-  border:1px solid #30394d;
-  border-radius:16px;
-  padding:20px;
-}
-.modalTop{
-  display:flex;
-  gap:20px;
-}
-.modalPoster{
-  width:190px;
-  height:285px;
-  object-fit:cover;
-  border-radius:10px;
-}
-.modalText{flex:1}
-.close{
-  float:right;
-  background:#252d3c;
-}
-.desc{
-  color:#c0c7d5;
-  line-height:1.6;
-  margin:15px 0;
-}
-a.trailer{
-  display:inline-block;
-  background:#ff3d71;
-  color:#fff;
-  text-decoration:none;
-  padding:11px 15px;
-  border-radius:9px;
-  font-weight:bold;
-}
-@media(max-width:1000px){
-  .grid{grid-template-columns:repeat(4,1fr)}
-}
-@media(max-width:700px){
-  header{flex-wrap:wrap}
-  .logo{width:100%}
-  .grid{grid-template-columns:repeat(2,1fr);gap:12px}
-  main{padding:20px 4%}
-  .modalTop{flex-direction:column}
-  .modalPoster{width:150px;height:225px}
-}
-</style>
-</head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Salt - Modern Anime Catalog</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f12; color: #fff; padding: 15px; }
+    header { text-align: center; padding: 15px 0; }
+    h1 { color: #ff6600; font-size: 28px; letter-spacing: 1px; }
+    .search-box { display: flex; justify-content: center; margin: 20px 0; gap: 10px; }
+    input { padding: 12px; font-size: 15px; width: 70%; max-width: 400px; border-radius: 6px; border: 1px solid #333; background: #1a1a24; color: #fff; outline: none; }
+    button { padding: 12px 20px; background: #ff6600; color: white; border: none; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+    
+    section { margin-bottom: 30px; }
+    h2 { margin-bottom: 15px; color: #ff9933; border-bottom: 2px solid #222; padding-bottom: 5px; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+    .card { background: #181824; border-radius: 8px; overflow: hidden; text-align: center; cursor: pointer; transition: transform 0.2s; border: 1px solid #282838; }
+    .card:hover { transform: translateY(-5px); }
+    .card img { width: 100%; height: 200px; object-fit: cover; }
+    .card h3 { font-size: 13px; padding: 8px 5px; height: 40px; overflow: hidden; color: #e1e1e1; }
+    .card p { font-size: 11px; color: #ffaa00; padding-bottom: 8px; }
 
+    .btn-container { text-align: center; margin: 25px 0; }
+    .load-btn { background: #222233; color: #ff6600; border: 1px solid #ff6600; padding: 10px 25px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+    /* Modal Styling */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; overflow-y: auto; padding: 20px; }
+    .modal-content { background: #1a1a26; max-width: 500px; margin: 30px auto; padding: 20px; border-radius: 10px; position: relative; border: 1px solid #ff6600; }
+    .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; color: #fff; cursor: pointer; }
+    .modal img { width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; }
+    .modal h2 { border: none; color: #ff6600; }
+    .modal p { font-size: 14px; line-height: 1.5; color: #ccc; margin-top: 10px; }
+  </style>
+</head>
 <body>
 
-<header>
-  <div class="logo">ANIME FIX</div>
-  <div class="search">
-    <input id="searchInput" placeholder="Search anime...">
+  <header>
+    <h1>ANIME SALT</h1>
+  </header>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search anime (e.g. Naruto)...">
     <button onclick="searchAnime()">Search</button>
   </div>
-</header>
 
-<main>
+  <section>
+    <h2>🔥 Popular Anime</h2>
+    <div id="popularContainer" class="grid">Loading popular anime...</div>
+  </section>
 
-  <h2 class="title">🔥 Popular Anime</h2>
-  <div id="popular" class="grid"></div>
-
-  <h2 class="title">📚 All Anime</h2>
-
-  <div class="filters">
-    <select id="type">
-      <option value="">All Types</option>
-      <option value="tv">TV</option>
-      <option value="movie">Movie</option>
-      <option value="ova">OVA</option>
-      <option value="ona">ONA</option>
-      <option value="special">Special</option>
-    </select>
-
-    <select id="status">
-      <option value="">All Status</option>
-      <option value="airing">Airing</option>
-      <option value="complete">Completed</option>
-      <option value="upcoming">Upcoming</option>
-    </select>
-
-    <button onclick="loadAll(true)">Apply Filters</button>
-  </div>
-
-  <div id="all" class="grid"></div>
-  <div id="message" class="empty"></div>
-  <button class="load" onclick="loadAll(false)">Load More Anime</button>
-
-</main>
-
-<div id="modal" class="modal" onclick="closeModal(event)">
-  <div class="modalBox">
-    <button class="close" onclick="hideModal()">✕</button>
-    <div id="modalContent"></div>
-  </div>
-</div>
-
-<script>
-let allPage = 1;
-let loading = false;
-
-function esc(text){
-  if(!text) return "";
-  return String(text).replace(/[&<>"']/g,m=>({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#039;"
-  }[m]));
-}
-
-function card(a){
-  const image = a.images?.jpg?.large_image_url ||
-                a.images?.jpg?.image_url ||
-                "https://via.placeholder.com/300x450?text=Anime";
-
-  const title = a.title || "Unknown Anime";
-  const year = a.year || a.aired?.prop?.from?.year || "N/A";
-  const score = a.score ? "⭐ " + a.score : "⭐ N/A";
-
-  return `
-    <div class="card" onclick="showAnime(${a.mal_id})">
-      <img class="poster" src="${image}" alt="${esc(title)}">
-      <div class="info">
-        <div class="name">${esc(title)}</div>
-        <div class="meta">${year} • ${score}</div>
-      </div>
+  <section>
+    <h2>📚 All Anime Catalog</h2>
+    <div id="allAnimeContainer" class="grid">Loading catalog...</div>
+    <div class="btn-container">
+      <button id="loadMoreBtn" class="load-btn" onclick="loadMoreAnime()">Load More Anime</button>
     </div>
-  `;
-}
+  </section>
 
-async function loadPopular(){
-  const box=document.getElementById("popular");
-  box.innerHTML="<div class='empty'>Loading popular anime...</div>";
+  <!-- Details Modal -->
+  <div id="animeModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <div id="modalDetails">Loading details...</div>
+    </div>
+  </div>
 
-  try{
-    const r=await fetch("/api/anime?page=1");
-    const d=await r.json();
+  <script>
+    let currentPage = 1;
 
-    if(!r.ok) throw new Error(d.error || "Failed");
-
-    box.innerHTML=(d.anime||d.data||[]).map(card).join("");
-  }catch(e){
-    box.innerHTML="<div class='empty'>Popular anime load नहीं हो पाया।</div>";
-  }
-}
-
-async function loadAll(reset=false){
-  if(loading) return;
-
-  if(reset){
-    allPage=1;
-    document.getElementById("all").innerHTML="";
-  }
-
-  loading=true;
-  document.getElementById("message").textContent="Loading anime...";
-
-  const type=document.getElementById("type").value;
-  const status=document.getElementById("status").value;
-
-  try{
-    let url=`/api/all-anime?page=${allPage}`;
-
-    if(type || status){
-      url=`/api/discover?page=${allPage}`;
-      if(type) url+=`&type=${encodeURIComponent(type)}`;
-      if(status) url+=`&status=${encodeURIComponent(status)}`;
-      url+="&order_by=mal_id&sort=asc";
+    async function fetchPopular() {
+      try {
+        const res = await fetch('/api/anime');
+        const d = await res.json();
+        const list = d.anime || d.data || [];
+        renderCards(list, 'popularContainer');
+      } catch(e) {
+        document.getElementById('popularContainer').innerText = 'Anime load nahi ho paya.';
+      }
     }
 
-    const r=await fetch(url);
-    const d=await r.json();
-
-    if(!r.ok) throw new Error(d.error || "Failed");
-
-    const data=d.anime||d.data||[];
-
-    if(reset){
-      document.getElementById("all").innerHTML="";
+    async function fetchCatalog(page = 1) {
+      try {
+        const res = await fetch(`/api/all-anime?page=${page}`);
+        const d = await res.json();
+        const list = d.anime || d.data || [];
+        renderCards(list, 'allAnimeContainer', page > 1);
+      } catch(e) {
+        document.getElementById('allAnimeContainer').innerText = 'Anime load nahi ho paya.';
+      }
     }
 
-    document.getElementById("all").insertAdjacentHTML(
-      "beforeend",
-      data.map(card).join("")
-    );
-
-    if(data.length){
-      allPage++;
-      document.getElementById("message").textContent="";
-    }else{
-      document.getElementById("message").textContent="No anime found.";
+    async function loadMoreAnime() {
+      currentPage++;
+      const btn = document.getElementById('loadMoreBtn');
+      btn.innerText = 'Loading...';
+      await fetchCatalog(currentPage);
+      btn.innerText = 'Load More Anime';
     }
 
-  }catch(e){
-    document.getElementById("message").textContent=
-      "Anime load नहीं हो पाया। थोड़ी देर बाद फिर कोशिश करें।";
-  }
+    async function searchAnime() {
+      const q = document.getElementById('searchInput').value;
+      if (!q) return;
+      document.getElementById('popularContainer').innerHTML = '';
+      document.getElementById('allAnimeContainer').innerText = 'Searching...';
+      document.getElementById('loadMoreBtn').style.display = 'none';
 
-  loading=false;
-}
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const d = await res.json();
+        const list = d.anime || d.data || [];
+        renderCards(list, 'allAnimeContainer');
+      } catch(e) {
+        document.getElementById('allAnimeContainer').innerText = 'Search failed.';
+      }
+    }
 
-async function searchAnime(){
-  const q=document.getElementById("searchInput").value.trim();
-  if(!q) return;
+    function renderCards(list, containerId, append = false) {
+      const container = document.getElementById(containerId);
+      if (!append) container.innerHTML = '';
+      
+      if (!list || list.length === 0) {
+        if (!append) container.innerText = 'Koi anime nahi mila.';
+        return;
+      }
 
-  const box=document.getElementById("all");
-  box.innerHTML="<div class='empty'>Searching...</div>";
+      list.forEach(anime => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => showAnime(anime.mal_id);
+        card.innerHTML = `
+          <img src="${anime.images?.jpg?.image_url || ''}" alt="${anime.title}">
+          <h3>${anime.title}</h3>
+          <p>⭐ ${anime.score || 'N/A'}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-  try{
-    const r=await fetch("/api/search?q="+encodeURIComponent(q)+"&page=1");
-    const d=await r.json();
+    async function showAnime(mal_id) {
+      const modal = document.getElementById('animeModal');
+      const modalDetails = document.getElementById('modalDetails');
+      modal.style.display = 'block';
+      modalDetails.innerHTML = '<h3>Loading details...</h3>';
 
-    if(!r.ok) throw new Error(d.error || "Failed");
+      try {
+        const res = await fetch(`/api/anime/${mal_id}`);
+        const result = await res.json();
+        const anime = result.data || result;
 
-    box.innerHTML=(d.anime||d.data||[]).map(card).join("");
-    document.querySelector(".title:nth-of-type(2)").textContent=
-      "🔎 Search Results";
-  }catch(e){
-    box.innerHTML="<div class='empty'>Search failed.</div>";
-  }
-}
+        let trailerHTML = '';
+        if (anime.trailer?.embed_url) {
+          trailerHTML = `
+            <h4 style="margin-top:15px; color:#ff6600;">Official Trailer</h4>
+            <iframe src="${anime.trailer.embed_url}" width="100%" height="200" frameborder="0" allowfullscreen style="margin-top:8px; border-radius:6px;"></iframe>
+          `;
+        }
 
-async function showAnime(id){
-  const modal=document.getElementById("modal");
-  const content=document.getElementById("modalContent");
+        modalDetails.innerHTML = `
+          <img src="${anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url}">
+          <h2>${anime.title}</h2>
+          <p><strong>Score:</strong> ⭐ ${anime.score || 'N/A'} | <strong>Episodes:</strong> ${anime.episodes || 'N/A'}</p>
+          <p><strong>Status:</strong> ${anime.status || 'N/A'}</p>
+          <p style="margin-top:10px;">${anime.synopsis ? anime.synopsis.slice(0, 300) + '...' : 'No synopsis available.'}</p>
+          ${trailerHTML}
+        `;
+      } catch (e) {
+        modalDetails.innerHTML = '<h3>Details load karne mein dikkat hui.</h3>';
+      }
+    }
 
-  modal.style.display="flex";
-  content.innerHTML="<div class='empty'>Loading...</div>";
+    function closeModal() {
+      document.getElementById('animeModal').style.display = 'none';
+    }
 
-  try{
-    const r=await fetch("/api/anime/"+id);
-    const d=await r.json();
-
-    if(!r.ok) throw new Error();
-
-    const a=d.data;
-
-    const image=a.images?.jpg?.large_image_url ||
-                 a.images?.jpg?.image_url ||
-                 "";
-
-    const trailer=a.trailer?.url;
-
-    content.innerHTML=`
-      <div class="modalTop">
-        <img class="modalPoster" src="${image}" alt="">
-        <div class="modalText">
-          <h1>${esc(a.title)}</h1>
-          <p class="meta">
-            ${a.type||"N/A"} •
-            ${a.year||a.aired?.prop?.from?.year||"N/A"} •
-            ⭐ ${a.score||"N/A"}
-          </p>
-
-          <p class="desc">${esc(a.synopsis||"No description available.")}</p>
-
-          ${
-            trailer
-            ? `<a class="trailer" href="${trailer}" target="_blank" rel="noopener">
-                ▶ Watch Official Trailer
-              </a>`
-            : `<p class="meta">Official trailer उपलब्ध नहीं है।</p>`
-          }
-        </div>
-      </div>
-    `;
-  }catch(e){
-    content.innerHTML="<div class='empty'>Anime details load नहीं हो पाए।</div>";
-  }
-}
-
-function hideModal(){
-  document.getElementById("modal").style.display="none";
-}
-
-function closeModal(e){
-  if(e.target.id==="modal") hideModal();
-}
-
-document.getElementById("searchInput").addEventListener("keydown",e=>{
-  if(e.key==="Enter") searchAnime();
-});
-
-loadPopular();
-loadAll(true);
-</script>
-
+    fetchPopular();
+    fetchCatalog();
+  </script>
 </body>
 </html>
