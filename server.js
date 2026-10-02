@@ -61,5 +61,26 @@ app.get('/api/watch/:id', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Video stream fetch nahi ho paya' });
+  }// Official Anime Details & Trailer Route
+app.get('/api/anime/:id', async (req, res) => {
+  try {
+    const animeId = req.params.id;
+    const response = await axios.get(`https://api.jikan.moe/v4/anime/${animeId}/full`);
+    const data = response.data.data;
+
+    res.json({
+      id: data.mal_id,
+      title: data.title,
+      synopsis: data.synopsis,
+      episodes: data.episodes,
+      score: data.score,
+      image: data.images.jpg.large_image_url,
+      trailer_embed_url: data.trailer?.embed_url || null
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Official details fetch nahi ho paye' });
   }
+});
+
+
 });
