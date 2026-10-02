@@ -474,7 +474,7 @@ button:hover,.filter-btn:hover,.load-more:hover{
       try {
         const res = await fetch(`/api/all-anime?page=${page}`);
         const d = await res.json();
-        const list = d.data || d.anime || [];
+        const list = d.data || [];
 
         renderCards(list, page > 1);
         document.getElementById('loadingStatus').innerText = `Showing page ${page}`;
@@ -504,7 +504,7 @@ button:hover,.filter-btn:hover,.load-more:hover{
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
         const d = await res.json();
-        const list = d.data || d.anime || [];
+        const list = d.data || [];
         renderCards(list, false);
       } catch (e) {
         document.getElementById('animeContainer').innerText = 'Search failed.';
@@ -523,19 +523,19 @@ button:hover,.filter-btn:hover,.load-more:hover{
       list.forEach(anime => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.onclick = () => showAnime(anime.mal_id);
+        card.onclick = () => showAnime(anime.node?.id);
 
-        const score = anime.score ? anime.score : 'N/A';
-        const episodes = anime.episodes ? `${anime.episodes} Eps` : 'TV Series';
-        const imgUrl = anime.images?.jpg?.image_url || '';
+        const score = anime.node?.mean ? anime.node?.mean : 'N/A';
+        const episodes = anime.node?.num_episodes ? `${anime.node?.num_episodes} Eps` : 'TV Series';
+        const imgUrl = anime.node?.main_picture?.large || anime.node?.main_picture?.medium || '' || '';
 
         card.innerHTML = `
           <div class="card-img-wrapper">
             <span class="badge">⭐ ${score}</span>
-            <img src="${imgUrl}" alt="${anime.title}" loading="lazy">
+            <img src="${imgUrl}" alt="${anime.node?.title || 'Unknown Anime'}" loading="lazy">
           </div>
           <div class="card-info">
-            <h3>${anime.title}</h3>
+            <h3>${anime.node?.title || 'Unknown Anime'}</h3>
             <p>${episodes}</p>
           </div>
         `;
@@ -565,14 +565,14 @@ button:hover,.filter-btn:hover,.load-more:hover{
         }
 
         modalDetails.innerHTML = `
-          <img src="${anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url}">
-          <h2>${anime.title}</h2>
+          <img src="${anime.images?.jpg?.large_image_url || anime.node?.main_picture?.large || anime.node?.main_picture?.medium || ''}">
+          <h2>${anime.node?.title || 'Unknown Anime'}</h2>
           <div class="modal-meta">
-            <span>⭐ Rating: ${anime.score || 'N/A'}</span>
-            <span>📺 Episodes: ${anime.episodes || 'N/A'}</span>
-            <span>📌 Status: ${anime.status || 'N/A'}</span>
+            <span>⭐ Rating: ${anime.node?.mean || 'N/A'}</span>
+            <span>📺 Episodes: ${anime.node?.num_episodes || 'N/A'}</span>
+            <span>📌 Status: ${anime.node?.end_date ? 'Finished' : 'Airing'}</span>
           </div>
-          <p>${anime.synopsis ? anime.synopsis.slice(0, 350) + '...' : 'No description available.'}</p>
+          <p>${anime.node?.synopsis ? anime.node.synopsis.slice(0, 350) + '...' : 'No description available.'}</p>
           ${trailerHTML}
         `;
       } catch (e) {

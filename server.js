@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
@@ -5,82 +7,106 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static('public'));
+const MAL_API = 'https://api.myanimelist.net/v2';
 
-// Top Popular Anime
-app.get('/api/anime', async (req, res) => {
-  try {
-    const response = await axios.get('https://api.jikan.moe/v4/top/anime?limit=25');
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch top anime' });
-  }
+app.use(express.static(path.join(__dirname, 'public')));
+
+const mal = axios.create({
+  baseURL: MAL_API,
+  headers: {
+    'X-MAL-CLIENT-ID': process.env.MAL_CLIENT_ID
+  },
+  timeout: 15000
 });
 
-// Catalog / Infinite Load Anime (Paginated)
+// Anime catalog
 app.get('/api/all-anime', async (req, res) => {
   try {
-    const page = req.query.page || 1;
-    const response = await axios.get(`https://api.jikan.moe/v4/top/anime?page=${page}&limit=25`);
-    res.json(response.data);
+    const page = Number(req.query.page || 1);
+
+    const response = await mal.get('/anime/ranking', {
+      params: {
+        ranking_type: 'all',
+        limit: 25,
+        offset: (page - 1) * 25,
+        fields:
+          'id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,nsfw,genres,my_list_status,num_episodes,start_season,broadcast,source,average_episode_duration,rating,studios'
+      }
+    });
+
+    res.json({
+      data: response.data.data || [],
+      paging: response.data.paging || {}
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch catalog' });
+    console.error('MAL catalog error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'MAL catalog fetch failed' });
   }
 });
 
-// Search Anime
+// Search
 app.get('/api/search', async (req, res) => {
   try {
-    const query = req.query.q;
-    const response = await axios.get(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}`);
+    const q = req.query.q;
+
+    if (!q) {
+      return res.json({ data: [] });
+    }
+
+    const response = await mal.get('/anime', {
+      params: {
+        q,
+        limit: 25,
+        fields:
+          'id,title,main_picture,synopsis,mean,num_episodes,start_date,end_date,genres,studios'
+      }
+    });
+
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to search anime' });
+    console.error('MAL search error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'MAL search failed' });
   }
 });
 
-// Anime Details
+// Anime details
 app.get('/api/anime/:id', async (req, res) => {
   try {
-    const response = await axios.get(`https://api.jikan.moe/v4/anime/${req.params.id}`);
+    const response = await mal.get(`/anime/${req.params.id}`, {
+      params: {
+        fields:
+          'id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,genres,my_list_status,num_episodes,start_season,broadcast,source,average_episode_duration,rating,studios,statistics'
+      }
+    });
+
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch details' });
+    console.error('MAL details error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'MAL details fetch failed' });
   }
+});
+
+app.get('/api/anime/:id/trailer', async (req, res) => {
+  try {
+    // MAL API v2 does not provide a universal streaming endpoint.
+    // Trailer URLs should come from an authorized video source.
+    res.json({
+      anime_id: req.params.id,
+      trailer_available: false,
+      message: 'Use an authorized trailer/video provider.'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Trailer lookup failed' });
+  }
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    mal_configured: Boolean(process.env.MAL_CLIENT_ID)
+  });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-// Consumet API se episode streaming link aur episode list laane ka route
-app.get('/api/watch/:id', async (req, res) => {
-  try {
-    const animeId = req.params.id;
-    // Gogoanime provider se episode links fetch karna
-    const response = await axios.get(`https://api.consumet.org/anime/gogoanime/info/${animeId}`);
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({ error: 'Video stream fetch nahi ho paya' });
-  }// Official Anime Details & Trailer Route
-app.get('/api/anime/:id', async (req, res) => {
-  try {
-    const animeId = req.params.id;
-    const response = await axios.get(`https://api.jikan.moe/v4/anime/${animeId}/full`);
-    const data = response.data.data;
-
-    res.json({
-      id: data.mal_id,
-      title: data.title,
-      synopsis: data.synopsis,
-      episodes: data.episodes,
-      score: data.score,
-      image: data.images.jpg.large_image_url,
-      trailer_embed_url: data.trailer?.embed_url || null
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Official details fetch nahi ho paye' });
-  }
-});
-
-
+  console.log(`Anime Fix server running on port ${PORT}`);
 });
