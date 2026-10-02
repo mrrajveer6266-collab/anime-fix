@@ -464,8 +464,8 @@
         }
 
         let trailerHTML = '';
-        if (anime.trailer?.url) {
-          trailerHTML = `<a href="${anime.trailer.url}" target="_blank" class="trailer-btn">▶ Watch Trailer</a>`;
+        if (anime.trailer?.embed_url) {
+          trailerHTML = `<div class="trailer-box"><iframe src="${anime.trailer.embed_url}" title="Official Trailer" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
         }
 
         modalDetails.innerHTML = `
