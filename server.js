@@ -1,72 +1,54 @@
 const express = require('express');
-const cors = require('cors');
-const app = express();
+const axios = require('axios');
+const path = require('path');
 
-app.use(cors());
+const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(express.static('public'));
 
-const cache = {};
-const CACHE_DURATION = 30 * 60 * 1000; // 30 mins cache
-
-async function fetchFromJikan(url) {
-  if (cache[url] && (Date.now() - cache[url].timestamp < CACHE_DURATION)) {
-    return cache[url].data;
-  }
-  await new Promise(resolve => setTimeout(resolve, 400));
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Jikan API Error: ${response.status}`);
-  const data = await response.json();
-  cache[url] = { data: data, timestamp: Date.now() };
-  return data;
-}
-
-// Popular Anime
+// Top Popular Anime
 app.get('/api/anime', async (req, res) => {
   try {
-    const data = await fetchFromJikan('https://api.jikan.moe/v4/top/anime?limit=15');
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch popular anime' });
+    const response = await axios.get('https://api.jikan.moe/v4/top/anime?limit=25');
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch top anime' });
   }
 });
 
-// Catalog with Pagination
+// Catalog / Infinite Load Anime (Paginated)
 app.get('/api/all-anime', async (req, res) => {
   try {
     const page = req.query.page || 1;
-    const data = await fetchFromJikan(`https://api.jikan.moe/v4/anime?page=${page}`);
-    res.json(data);
-  } catch (err) {
+    const response = await axios.get(`https://api.jikan.moe/v4/anime?page=${page}&limit=25`);
+    res.json(response.data);
+  } catch (error) {
     res.status(500).json({ error: 'Failed to fetch catalog' });
   }
 });
 
-// Search Route
+// Search Anime
 app.get('/api/search', async (req, res) => {
   try {
-    const query = req.query.q || '';
-    const data = await fetchFromJikan(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}`);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: 'Search failed' });
+    const query = req.query.q;
+    const response = await axios.get(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}`);
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to search anime' });
   }
 });
 
-// Details Route
+// Anime Details
 app.get('/api/anime/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = await fetchFromJikan(`https://api.jikan.moe/v4/anime/${id}/full`);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch anime details' });
+    const response = await axios.get(`https://api.jikan.moe/v4/anime/${req.params.id}`);
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch details' });
   }
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', branding: 'Anime Salt' });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Anime Salt Server running on port ${PORT}`));
