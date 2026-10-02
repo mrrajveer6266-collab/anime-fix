@@ -21,7 +21,7 @@ app.get('/api/anime', async (req, res) => {
 app.get('/api/all-anime', async (req, res) => {
   try {
     const page = req.query.page || 1;
-    const response = await axios.get(`https://api.jikan.moe/v4/anime?page=${page}&limit=25`);
+    const response = await axios.get(`https://api.jikan.moe/v4/top/anime?page=${page}&limit=25`);
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch catalog' });
