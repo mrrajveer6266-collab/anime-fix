@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Fix - Premium Streaming Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0d0e12;
+      --card-bg: #16181f;
+      --accent-color: #ff5500;
+      --accent-hover: #ff7733;
+      --text-main: #f3f4f6;
+      --text-sub: #9ca3af;
+      --glass-bg: rgba(18, 20, 29, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding-bottom: 60px;
+      overflow-x: hidden;
+    }
+
+    /* Modern Navbar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 6%;
+      background: var(--glass-bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent-color);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 13px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      background: #1a1c24;
+      color: #fff;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 12px rgba(255, 85, 0, 0.25);
+    }
+
+    .search-btn {
+      padding: 10px 20px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+
+    .search-btn:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 15px rgba(255, 85, 0, 0.4);
+    }
+
+    /* Container & Section Header */
+    .container { padding: 0 6%; }
+    section { margin-top: 32px; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 5px;
+      height: 22px;
+      background: var(--accent-color);
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* Anime Cards Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
+    }
+
+    /* Modern Card UI */
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: var(--accent-color);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 85, 0, 0.2);
+    }
+
+    .card-img-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 140%; /* Aspect ratio 5:7 */
+      overflow: hidden;
+      background: #20222e;
+    }
+
+    .card img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .card:hover img { transform: scale(1.08); }
+
+    .badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(10, 10, 15, 0.82);
+      color: #ffb703;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 183, 3, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .card-info {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-grow: 1;
+    }
+
+    .card-info h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f1f1f1;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-info p {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    /* Load More Button & Status */
+    .load-more-wrapper {
+      text-align: center;
+      margin: 40px 0 20px;
+    }
+
+    .load-more-btn {
+      padding: 14px 36px;
+      background: linear-gradient(135deg, var(--accent-color), #e64a00);
+      color: white;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(255, 85, 0, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .load-more-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 85, 0, 0.5);
+    }
+
+    .loading-status {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-top: 10px;
+    }
+
+    /* Modal Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 200;
+      overflow-y: auto;
+      padding: 20px 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .modal-content {
+      background: #14161f;
+      max-width: 550px;
+      margin: 30px auto;
+      padding: 24px;
+      border-radius: 20px;
+      position: relative;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      font-size: 26px;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .close-btn:hover { color: var(--accent-color); }
+
+    .modal img {
+      width: 100%;
+      max-height: 280px;
+      object-fit: contain;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      background: #090a0e;
+    }
+
+    .modal h2 {
+      font-size: 20px;
+      color: #fff;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .modal-meta {
+      font-size: 12px;
+      color: var(--accent-color);
+      margin-bottom: 14px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-weight: 600;
+    }
+
+    .modal p {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #d1d5db;
+    }
+
+    .trailer-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #ff0000;
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      border-radius: 10px;
+      font-size: 13px;
+      transition: 0.3s;
+    }
+
+    .trailer-btn:hover {
+      box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+    }
+  
+/* ===== ANIME FIX PREMIUM UPGRADE v2 ===== */
+body{
+  background:
+    radial-gradient(circle at 15% 10%,rgba(255,85,0,.12),transparent 28%),
+    radial-gradient(circle at 85% 20%,rgba(120,70,255,.10),transparent 30%),
+    #08090d;
+}
+header{
+  padding:18px 5%;
+  background:rgba(8,9,13,.78);
+  box-shadow:0 8px 30px rgba(0,0,0,.35);
+}
+.logo{
+  font-size:25px;
+  text-shadow:0 0 22px rgba(255,85,0,.45);
+}
+.search-box input{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.12);
+  backdrop-filter:blur(10px);
+}
+.search-btn{
+  border:0;
+  font-weight:700;
+  box-shadow:0 6px 20px rgba(255,85,0,.22);
+  transition:.25s;
+}
+.search-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 28px rgba(255,85,0,.35);
+}
+.anime-card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.07);
+  background:linear-gradient(145deg,rgba(24,26,35,.96),rgba(12,13,18,.96));
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;
+}
+.anime-card:hover{
+  transform:translateY(-8px) scale(1.015);
+  border-color:rgba(255,85,0,.45);
+  box-shadow:0 18px 42px rgba(0,0,0,.48),0 0 25px rgba(255,85,0,.10);
+}
+.anime-card img{
+  transition:transform .45s ease,filter .45s ease;
+}
+.anime-card:hover img{
+  transform:scale(1.06);
+  filter:brightness(1.08);
+}
+.anime-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(to top,rgba(0,0,0,.55),transparent 45%);
+  opacity:.7;
+}
+.trailer-box{
+  width:100%;
+  margin-top:20px;
+  aspect-ratio:16/9;
+  overflow:hidden;
+  border-radius:14px;
+  background:#000;
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 12px 35px rgba(0,0,0,.4);
+}
+.trailer-box iframe{
+  width:100%;
+  height:100%;
+  border:0;
+}
+button,.filter-btn,.load-more{
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+button:hover,.filter-btn:hover,.load-more:hover{
+  transform:translateY(-2px);
+}
+@media(max-width:600px){
+  header{
+    padding:14px 4%;
+  }
+  .logo{
+    font-size:20px;
+  }
+  .search-box{
+    max-width:230px;
+  }
+  .search-btn{
+    padding:10px 14px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">🔥 ANIME FIX</div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search any anime...">
+      <button class="search-btn" onclick="searchAnime()">Search</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <section>
+      <div class="section-header">
+        <div class="section-title">Explore Catalog</div>
+      </div>
+      <div id="animeContainer" class="grid">Loading catalog...</div>
+      
+      <div class="load-more-wrapper">
+        <button id="loadMoreBtn" class="load-more-btn" onclick="loadMoreAnime()">
+          <span>⚡ Load More Anime</span>
+        </button>
+        <div id="loadingStatus" class="loading-status">Page 1</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Anime Details Modal -->
+  <div id="animeModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <div id="modalDetails">Loading details...</div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    let isLoading = false;
+    let isSearchMode = false;
+
+    async function fetchCatalog(page = 1) {
+      if (isLoading) return;
+      isLoading = true;
+      const btn = document.getElementById('loadMoreBtn');
+      btn.innerText = '⏳ Loading...';
+
+      try {
+        const res = await fetch(`/api/all-anime?page=${page}`);
+        const d = await res.json();
+        const list = d.data || d.anime || [];
+
+        renderCards(list, page > 1);
+        document.getElementById('loadingStatus').innerText = `Showing page ${page}`;
+      } catch (e) {
+        document.getElementById('loadingStatus').innerText = 'Failed to fetch anime.';
+      } finally {
+        isLoading = false;
+        btn.innerText = '⚡ Load More Anime';
+      }
+    }
+
+    function loadMoreAnime() {
+      if (!isSearchMode) {
+        currentPage++;
+        fetchCatalog(currentPage);
+      }
+    }
+
+    async function searchAnime() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+
+      isSearchMode = true;
+      document.getElementById('animeContainer').innerHTML = 'Searching...';
+      document.getElementById('loadMoreBtn').style.display = 'none';
+
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const d = await res.json();
+        const list = d.data || d.anime || [];
+        renderCards(list, false);
+      } catch (e) {
+        document.getElementById('animeContainer').innerText = 'Search failed.';
+      }
+    }
+
+    function renderCards(list, append = false) {
+      const container = document.getElementById('animeContainer');
+      if (!append) container.innerHTML = '';
+
+      if (!list || list.length === 0) {
+        if (!append) container.innerHTML = '<p>No anime found.</p>';
+        return;
+      }
+
+      list.forEach(anime => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => showAnime(anime.mal_id);
+
+        const score = anime.score ? anime.score : 'N/A';
+        const episodes = anime.episodes ? `${anime.episodes} Eps` : 'TV Series';
+        const imgUrl = anime.images?.jpg?.image_url || '';
+
+        card.innerHTML = `
+          <div class="card-img-wrapper">
+            <span class="badge">⭐ ${score}</span>
+            <img src="${imgUrl}" alt="${anime.title}" loading="lazy">
+          </div>
+          <div class="card-info">
+            <h3>${anime.title}</h3>
+            <p>${episodes}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function showAnime(mal_id) {
+      const modal = document.getElementById('animeModal');
+      const modalDetails = document.getElementById('modalDetails');
+      modal.style.display = 'block';
+      modalDetails.innerHTML = '<p style="color:#fff;">Loading anime details...</p>';
+
+      try {
+        const res = await fetch(`/api/anime/${mal_id}`);
+        const result = await res.json();
+        const anime = result.data || result;
+
+        if (!anime || !anime.title) {
+          modalDetails.innerHTML = '<p style="color:#fff;">Details currently unavailable.</p>';
+          return;
+        }
+
+        let trailerHTML = '';
+        if (anime.trailer?.embed_url) {
+          trailerHTML = `<div class="trailer-box"><iframe src="${anime.trailer.embed_url}" title="Official Trailer" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+        }
+
+        modalDetails.innerHTML = `
+          <img src="${anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url}">
+          <h2>${anime.title}</h2>
+          <div class="modal-meta">
+            <span>⭐ Rating: ${anime.score || 'N/A'}</span>
+            <span>📺 Episodes: ${anime.episodes || 'N/A'}</span>
+            <span>📌 Status: ${anime.status || 'N/A'}</span>
+          </div>
+          <p>${anime.synopsis ? anime.synopsis.slice(0, 350) + '...' : 'No description available.'}</p>
+          ${trailerHTML}
+        `;
+      } catch (e) {
+        modalDetails.innerHTML = '<p style="color:#fff;">Error loading details.</p>';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('animeModal').style.display = 'none';
+    }
+
+    // Auto load on scroll near bottom
+    window.addEventListener('scroll', () => {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 600) {
+        if (!isLoading && !isSearchMode) {
+          currentPage++;
+          fetchCatalog(currentPage);
+        }
+      }
+    });
+
+    // Initial Load
+    fetchCatalog(1);
+  </script>
+</body>
+</html>

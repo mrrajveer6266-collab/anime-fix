@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
+const cheerio = require('cheerio');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -107,6 +108,51 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ==========================================
+// Hindi Anime Stream / m3u8 Extraction API
+// ==========================================
+app.get('/api/get-m3u8', async (req, res) => {
+    const pageUrl = req.query.url;
+    if (!pageUrl) {
+        return res.status(400).json({ success: false, message: "URL parameter is required" });
+    }
+
+    try {
+        // 1. Episode Page fetch करके iframe src खोजना
+        const { data: pageHtml } = await axios.get(pageUrl, {
+            headers: { 
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' 
+            }
+        });
+        const $ = cheerio.load(pageHtml);
+        const iframeSrc = $('iframe').attr('src');
+
+        if (!iframeSrc) {
+            return res.status(404).json({ success: false, message: "No video iframe found on this page" });
+        }
+
+        // 2. iframe page के अंदर से direct .m3u8 स्ट्रीम URL खोजना
+        const { data: iframeHtml } = await axios.get(iframeSrc, {
+            headers: { 
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': pageUrl 
+            }
+        });
+
+        // RegEx से .m3u8 वीडियो फाइल खोजना
+        const m3u8Match = iframeHtml.match(/(https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*)/);
+
+        if (m3u8Match) {
+            return res.json({ success: true, stream_url: m3u8Match[0], isDirect: true });
+        } else {
+            // Fallback: अगर direct .m3u8 न मिले तो safe iframe URL लौटाएं
+            return res.json({ success: true, stream_url: iframeSrc, isDirect: false });
+        }
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 app.listen(PORT, () => {
-  console.log(`Anime Fix server running on port ${PORT}`);
+   console.log(`Anime Fix server running on port ${PORT}`);
 });
