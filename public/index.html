@@ -607,6 +607,7 @@ async
 
 
 
+
 function openAndPlayAnime(url) {
     let playerModal = document.getElementById('playerModal');
     if(!playerModal) {
@@ -619,9 +620,8 @@ function openAndPlayAnime(url) {
                 <span style="color:#fff;font-family:sans-serif;font-weight:bold;font-size:16px;">Anime Fix Player</span>
                 <button onclick="document.getElementById('playerModal').remove()" style="padding:6px 14px;background:#ff4757;color:#fff;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">Close ✖</button>
             </div>
-            <div style="width:100%;max-width:800px;background:#111;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.8);display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;text-align:center;padding:20px;">
-                <video id="animeVideo" controls autoplay width="100%" height="100%" style="border-radius:8px;background:#000;" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></video>
-                <p style="color:#aaa;font-size:13px;margin-top:10px;font-family:sans-serif;">Note: Free streaming servers restrict direct embedding. Enjoy this sample stream preview!</p>
+            <div style="width:100%;max-width:800px;background:#111;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.8);display:flex;flex-direction:column;align-items:center;justify-content:center;height:420px;">
+                <iframe width="100%" height="100%" src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1" title="Anime Stream" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:8px;"></iframe>
             </div>
         `;
         document.body.appendChild(playerModal);
