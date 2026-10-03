@@ -526,12 +526,9 @@ button:hover,.filter-btn:hover,.load-more:hover{
           card.onclick = () => {
             const title = anime.node?.title || anime.title || 'Anime';
             const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            const episodeUrl = anime.link || anime.url || `https://animesalt.cx/episode/${slug}-episode-1/`;
+            const episodeUrl = anime.link || anime.url || `https://gogoanime3.co/${slug}-episode-1`;
             openAndPlayAnime(episodeUrl);
-        };;
-
-        const score = anime.node?.mean ? anime.node?.mean : 'N/A';
-        const episodes = anime.node?.num_episodes ? `${anime.node?.num_episodes} Eps` : 'TV Series';
+        };
         const imgUrl = anime.node?.main_picture?.large || anime.node?.main_picture?.medium || '' || '';
 
         card.innerHTML = `
