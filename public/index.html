@@ -605,13 +605,16 @@ button:hover,.filter-btn:hover,.load-more:hover{
 // One-Click Video Stream Player
 async 
 
+
 function openAndPlayAnime(url) {
-    let slug = '';
+    let animeName = 'frieren';
     if(typeof url === 'string') {
-        slug = url.split('/').pop().replace('-episode-1','').toLowerCase();
+        animeName = url.split('/').pop().replace('-episode-1','').toLowerCase();
     }
-    // Working Gogoanime Vidstreaming / Anitaku Server
-    const embedUrl = 'https://embtaku.pro/embedplus?id=' + (slug || 'naruto') + '-episode-1';
+
+    // Direct Working Multi-Server Stream Link
+    const embedUrl = 'https://vidsrc.to/embed/anime/' + animeName + '/1/1';
+
     let playerModal = document.getElementById('playerModal');
     if(!playerModal) {
         playerModal = document.createElement('div');
