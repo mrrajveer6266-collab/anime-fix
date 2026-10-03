@@ -603,56 +603,26 @@ button:hover,.filter-btn:hover,.load-more:hover{
     fetchCatalog(1);
 
 // One-Click Video Stream Player
-async function openAndPlayAnime(url) {
+async 
+function openAndPlayAnime(url) {
     let slug = '';
     if(typeof url === 'string') {
         slug = url.split('/').pop().replace('-episode-1','');
     }
     const embedUrl = 'https://gogoanime3.co/embed/' + (slug || 'naruto') + '-episode-1';
     let playerModal = document.getElementById('playerModal');
-    if(playerModal === null) {
+    if(!playerModal) {
         playerModal = document.createElement('div');
         playerModal.id = 'playerModal';
         playerModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;';
-        playerModal.innerHTML = '<button onclick="document.getElementById('playerModal').remove()" style="align-self:flex-end;margin-bottom:10px;padding:8px 16px;background:#ff4757;color:#fff;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">Close ✖</button><iframe id="animeIframe" src="' + embedUrl + '" width="100%" height="350" frameborder="0" allowfullscreen style="max-width:800px;border-radius:10px;background:#000;"></iframe>';
+        playerModal.innerHTML = '<button onclick="document.getElementById(\'playerModal\').remove()" style="align-self:flex-end;margin-bottom:10px;padding:8px 16px;background:#ff4757;color:#fff;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">Close ✖</button><iframe id="animeIframe" src="' + embedUrl + '" width="100%" height="350" frameborder="0" allowfullscreen style="max-width:800px;border-radius:10px;background:#000;"></iframe>';
         document.body.appendChild(playerModal);
     } else {
         document.getElementById('animeIframe').src = embedUrl;
         playerModal.style.display = 'flex';
     }
 }
-    
-    if (modal) modal.style.display = 'block';
-    if (container) container.innerHTML = '<p style="color:#fff; text-align:center; padding:20px;">वीडियो लोड हो रहा है, कृपया प्रतीक्षा करें...</p>';
 
-    try {
-        const res = await fetch(`/api/get-m3u8?url=${encodeURIComponent(episodePageUrl)}`);
-        const data = await res.json();
-
-        if (data.success && data.stream_url) {
-            if (data.isDirect) {
-                container.innerHTML = '<video id="anime-video" controls autoplay style="width:100%; max-height:400px; border-radius:8px;"></video>';
-                const video = document.getElementById('anime-video');
-
-                if (window.Hls && Hls.isSupported()) {
-                    const hls = new Hls();
-                    hls.loadSource(data.stream_url);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = data.stream_url;
-                    video.play();
-                }
-            } else {
-                container.innerHTML = `<iframe src="${data.stream_url}" width="100%" height="350px" frameborder="0" sandbox="allow-scripts allow-same-origin allow-forms" allowfullscreen style="border-radius:8px;"></iframe>`;
-            }
-        } else {
-            container.innerHTML = '<p style="color:#ff4757; text-align:center;">वीडियो प्राप्त नहीं हो सका।</p>';
-        }
-    } catch (err) {
-        container.innerHTML = '<p style="color:#ff4757; text-align:center;">सर्वर कनेक्शन त्रुटि।</p>';
-    }
-}
-  </script>
+</script>
 </body>
 </html>
