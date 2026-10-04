@@ -689,6 +689,9 @@ function renderAnime(list, append=false) {
       <img src="${image}" alt="${escapeHtml(title)}" loading="lazy">
       <h3>${escapeHtml(title)}</h3>
       <p>⭐ ${score} &nbsp; • &nbsp; 📺 ${episodes}</p>
+      <button class="watch-btn" onclick="event.stopPropagation(); showAnime(${id});">
+        ▶️ Play / Watch
+      </button>
     `;
 
     container.appendChild(card);
