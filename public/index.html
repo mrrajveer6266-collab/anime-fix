@@ -1078,5 +1078,14 @@ loadAnime(1);
 })();
 </script>
 
+
+<!-- Modular Video Player Modal -->
+<div id="videoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+  <div style="position:relative; width:90%; max-width:800px; background:#111; padding:15px; border-radius:8px; text-align:right;">
+    <button onclick="closeVideoModal()" style="background:#ff4d4d; color:#fff; border:none; padding:8px 15px; border-radius:4px; cursor:pointer; font-weight:bold; margin-bottom:10px;">✕ Close Player</button>
+    <div id="playerContainer" style="width:100%; height:400px; background:#000;"></div>
+  </div>
+</div>
+
 </body>
 </html>
