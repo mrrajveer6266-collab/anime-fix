@@ -156,3 +156,13 @@ app.get('/api/get-m3u8', async (req, res) => {
 app.listen(PORT, () => {
    console.log(`Anime Fix server running on port ${PORT}`);
 });
+
+// New Modular Streaming Route (Preserving Existing MAL Catalog)
+const { getAnimeStreams } = require('./providers/gogoProvider');
+app.get('/api/stream/:title/:episode?', async (req, res) => {
+  const { title, episode } = req.params;
+  const epNum = episode ? parseInt(episode) : 1;
+  
+  const result = await getAnimeStreams(title, epNum);
+  res.json(result);
+});

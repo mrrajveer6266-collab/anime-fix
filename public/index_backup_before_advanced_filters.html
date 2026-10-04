@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Fix</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#0f0f0f;color:#fff;margin:0;padding:15px}
+    h1{text-align:center;color:#ff6600}
+    .search-box{display:flex;justify-content:center;margin-bottom:20px;gap:10px}
+    input{padding:10px;font-size:16px;width:60%;border-radius:5px;border:none}
+    button{padding:10px 15px;background:#ff6600;color:#fff;border:0;font-size:16px;border-radius:5px;cursor:pointer}
+    #status{text-align:center;margin:12px;color:#bbb}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:15px}
+    .card{background:#1e1e1e;border-radius:8px;overflow:hidden;text-align:center;padding-bottom:8px;cursor:pointer}
+    .card img{width:100%;height:190px;object-fit:cover}
+    .card h3{font-size:14px;margin:8px 5px;height:36px;overflow:hidden;color:#fff}
+    .card p{font-size:12px;color:#aaa;margin:5px}
+    .more{text-align:center;margin:25px}
+    .modal{display:none;position:fixed;z-index:10;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.9);overflow:auto}
+    .modal-box{background:#1b1b1b;margin:30px auto;padding:20px;max-width:700px;border-radius:10px}
+    .close{float:right;font-size:28px;color:#fff;cursor:pointer}
+    .details-img{width:180px;max-width:100%;border-radius:8px}
+    .meta{color:#bbb;line-height:1.7}
+  </style>
+</head>
+<body>
+
+<h1>Anime Fix</h1>
+
+<div class="search-box">
+  <input id="searchInput" type="text" placeholder="Search anime...">
+  <button onclick="searchAnime()">Search</button>
+</div>
+
+<div id="status">Loading anime...</div>
+<div id="animeContainer" class="grid"></div>
+
+<div class="more">
+  <button onclick="loadMore()">⚡ Load More Anime</button>
+</div>
+
+<div id="animeModal" class="modal">
+  <div class="modal-box">
+    <span class="close" onclick="closeModal()">×</span>
+    <div id="modalDetails">Loading...</div>
+  </div>
+</div>
+
+<script>
+let currentPage = 1;
+let loading = false;
+let searchMode = false;
+
+async function fetchAnime(url, append=false) {
+  if (loading) return;
+  loading = true;
+
+  const status = document.getElementById('status');
+  status.innerText = '⏳ Loading anime...';
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('API error');
+
+    const data = await res.json();
+    const list = data.data || [];
+
+    renderAnime(list, append);
+
+    status.innerText = list.length
+      ? `Showing ${list.length} anime`
+      : 'No anime found.';
+  } catch (e) {
+    console.error(e);
+    status.innerText = '❌ Error loading anime.';
+  } finally {
+    loading = false;
+  }
+}
+
+function loadAnime(page=1) {
+  searchMode = false;
+  currentPage = page;
+  fetchAnime(`/api/all-anime?page=${page}`, page > 1);
+}
+
+function loadMore() {
+  if (!searchMode) {
+    currentPage++;
+    fetchAnime(`/api/all-anime?page=${currentPage}`, true);
+  }
+}
+
+async function searchAnime() {
+  const q = document.getElementById('searchInput').value.trim();
+
+  if (!q) {
+    currentPage = 1;
+    loadAnime(1);
+    return;
+  }
+
+  searchMode = true;
+  loading = true;
+  document.getElementById('status').innerText = '🔎 Searching...';
+
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+    if (!res.ok) throw new Error('Search error');
+
+    const data = await res.json();
+    renderAnime(data.data || [], false);
+
+    document.getElementById('status').innerText =
+      `${(data.data || []).length} results found`;
+  } catch (e) {
+    console.error(e);
+    document.getElementById('status').innerText = '❌ Search failed.';
+  } finally {
+    loading = false;
+  }
+}
+
+function renderAnime(list, append=false) {
+  const container = document.getElementById('animeContainer');
+
+  if (!append) container.innerHTML = '';
+
+  if (!list.length && !append) {
+    container.innerHTML = '<p>No anime found.</p>';
+    return;
+  }
+
+  list.forEach(item => {
+    const anime = item.node || item;
+
+    const id = anime.id;
+    const title = anime.title || 'Unknown Anime';
+    const image =
+      anime.main_picture?.large ||
+      anime.main_picture?.medium ||
+      '';
+
+    const score = anime.mean ?? 'N/A';
+    const episodes = anime.num_episodes || 'N/A';
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    card.onclick = () => showAnime(id);
+
+    card.innerHTML = `
+      <img src="${image}" alt="${escapeHtml(title)}" loading="lazy">
+      <h3>${escapeHtml(title)}</h3>
+      <p>⭐ ${score} &nbsp; • &nbsp; 📺 ${episodes}</p>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+async function showAnime(id) {
+  const modal = document.getElementById('animeModal');
+  const details = document.getElementById('modalDetails');
+
+  modal.style.display = 'block';
+  details.innerHTML = '⏳ Loading details...';
+
+  try {
+    const res = await fetch(`/api/anime/${id}`);
+    if (!res.ok) throw new Error('Details error');
+
+    const anime = await res.json();
+
+    const image =
+      anime.main_picture?.large ||
+      anime.main_picture?.medium ||
+      '';
+
+    const genres = (anime.genres || [])
+      .map(g => g.name)
+      .join(', ') || 'N/A';
+
+    const studios = (anime.studios || [])
+      .map(s => s.name)
+      .join(', ') || 'N/A';
+
+    details.innerHTML = `
+      <img class="details-img" src="${image}" alt="${escapeHtml(anime.title || '')}">
+      <h2>${escapeHtml(anime.title || 'Unknown Anime')}</h2>
+
+      <div class="meta">
+        ⭐ Rating: ${anime.mean ?? 'N/A'}<br>
+        📺 Episodes: ${anime.num_episodes || 'N/A'}<br>
+        🎭 Genres: ${escapeHtml(genres)}<br>
+        🎬 Studio: ${escapeHtml(studios)}<br>
+        📅 Start: ${anime.start_date || 'N/A'}<br>
+        📅 End: ${anime.end_date || 'Ongoing'}
+      </div>
+
+      <p>${escapeHtml(anime.synopsis || 'No description available.')}</p>
+    `;
+  } catch (e) {
+    console.error(e);
+    details.innerHTML = '❌ Error loading details.';
+  }
+}
+
+function closeModal() {
+  document.getElementById('animeModal').style.display = 'none';
+}
+
+window.onclick = function(e) {
+  const modal = document.getElementById('animeModal');
+  if (e.target === modal) closeModal();
+};
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+loadAnime(1);
+</script>
+
+</body>
+</html>
