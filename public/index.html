@@ -23,6 +23,63 @@
     .details-img{width:180px;max-width:100%;border-radius:8px}
     .meta{color:#bbb;line-height:1.7}
   .filter-box{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:15px 0}.filter-box select{padding:10px;background:#1e1e1e;color:#fff;border:1px solid #444;border-radius:5px}.filter-box button{padding:10px 15px;background:#ff6600;color:#fff;border:0;border-radius:5px;cursor:pointer}@media(max-width:600px){.filter-box{flex-direction:column}.filter-box select,.filter-box button{width:100%}}\n  </style>
+
+<style>
+#advancedFilterBox{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  align-items:center;
+  margin:18px auto;
+  max-width:1200px;
+  padding:12px;
+}
+
+#advancedFilterBox select,
+#advancedFilterBox button{
+  min-height:42px;
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid #444;
+  font-size:14px;
+}
+
+#advancedFilterBox select{
+  background:#1e1e1e;
+  color:#fff;
+}
+
+#advancedFilterBox button{
+  background:#ff6600;
+  color:#fff;
+  border:0;
+  cursor:pointer;
+  font-weight:600;
+}
+
+#advancedFilterBox button:hover{
+  opacity:.88;
+}
+
+#resetAdvancedFilters{
+  background:#444 !important;
+}
+
+@media(max-width:600px){
+  #advancedFilterBox{
+    flex-direction:column;
+    width:calc(100% - 24px);
+    box-sizing:border-box;
+  }
+
+  #advancedFilterBox select,
+  #advancedFilterBox button{
+    width:100%;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -32,7 +89,9 @@
   <input id="searchInput" type="text" placeholder="Search anime...">
   <button onclick="searchAnime()">Search</button>
 </div>
-<div class="filter-box">
+
+
+<div class="filter-box" id="advancedFilterBox">
   <select id="genreFilter">
     <option value="">🎭 All Genres</option>
     <option value="Action">Action</option>
@@ -44,6 +103,9 @@
     <option value="Sci-Fi">Sci-Fi</option>
     <option value="Sports">Sports</option>
     <option value="Horror">Horror</option>
+    <option value="Mystery">Mystery</option>
+    <option value="Supernatural">Supernatural</option>
+    <option value="Thriller">Thriller</option>
   </select>
 
   <select id="typeFilter">
@@ -52,16 +114,52 @@
     <option value="movie">Movie</option>
     <option value="ova">OVA</option>
     <option value="ona">ONA</option>
+    <option value="special">Special</option>
+    <option value="music">Music</option>
+  </select>
+
+  <select id="statusFilter">
+    <option value="">📡 All Status</option>
+    <option value="airing">Currently Airing</option>
+    <option value="finished">Finished</option>
+  </select>
+
+  <select id="yearFilter">
+    <option value="">📅 All Years</option>
+    <option value="2026">2026</option>
+    <option value="2025">2025</option>
+    <option value="2024">2024</option>
+    <option value="2023">2023</option>
+    <option value="2022">2022</option>
+    <option value="2021">2021</option>
+    <option value="2020">2020</option>
+    <option value="2019">2019</option>
+    <option value="2018">2018</option>
+    <option value="2017">2017</option>
+    <option value="2016">2016</option>
+    <option value="2015">2015</option>
   </select>
 
   <select id="sortFilter">
     <option value="">↕️ Default</option>
     <option value="score">⭐ Highest Score</option>
+    <option value="popularity">🔥 Popularity</option>
     <option value="title">🔤 A-Z</option>
+    <option value="newest">🆕 Newest</option>
   </select>
 
-<button onclick="applyFilters()">🔎 Apply Filters</button>
+  <select id="scoreFilter">
+    <option value="">⭐ Any Score</option>
+    <option value="9">9+</option>
+    <option value="8">8+</option>
+    <option value="7">7+</option>
+    <option value="6">6+</option>
+  </select>
+
+  <button type="button" id="applyAdvancedFilters">🔎 Apply Filters</button>
+  <button type="button" id="resetAdvancedFilters">↩️ Reset</button>
 </div>
+
 <div id="status">Loading anime...</div>
 <div id="animeContainer" class="grid"></div>
 
@@ -304,6 +402,196 @@ async function applyFilters() {
 }
 
 loadAnime(1);
+</script>
+
+
+<script>
+(function(){
+
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  function getAnime(item){
+    return item.node || item;
+  }
+
+  async function getAnimePages(maxPages = 5){
+    const all = [];
+
+    for(let page = 1; page <= maxPages; page++){
+      try{
+        const response = await fetch('/api/all-anime?page=' + page);
+
+        if(!response.ok){
+          throw new Error('API error on page ' + page);
+        }
+
+        const data = await response.json();
+        const items = data.data || [];
+
+        all.push(...items);
+
+        if(items.length < 25) break;
+
+        await sleep(350);
+      }catch(error){
+        console.error(error);
+        break;
+      }
+    }
+
+    return all;
+  }
+
+  async function advancedApplyFilters(){
+
+    const status = document.getElementById('status');
+
+    const genre = document.getElementById('genreFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    const animeStatus = document.getElementById('statusFilter').value;
+    const year = document.getElementById('yearFilter').value;
+    const sort = document.getElementById('sortFilter').value;
+    const minScore = document.getElementById('scoreFilter').value;
+
+    status.innerText = '⏳ Loading anime for filters...';
+
+    try{
+
+      const rawList = await getAnimePages(5);
+
+      let list = rawList
+        .map(getAnime)
+        .filter(Boolean);
+
+      list = list.filter(anime => {
+
+        const genreMatch =
+          !genre ||
+          (anime.genres || []).some(g =>
+            String(g.name || '').toLowerCase() === genre.toLowerCase()
+          );
+
+        const typeMatch =
+          !type || anime.media_type === type;
+
+        const startDate = anime.start_date || '';
+        const endDate = anime.end_date || '';
+
+        const statusMatch =
+          !animeStatus ||
+          (animeStatus === 'finished' && !!endDate) ||
+          (animeStatus === 'airing' && !endDate);
+
+        const yearMatch =
+          !year ||
+          startDate.startsWith(year);
+
+        const score = Number(anime.mean || 0);
+
+        const scoreMatch =
+          !minScore || score >= Number(minScore);
+
+        return (
+          genreMatch &&
+          typeMatch &&
+          statusMatch &&
+          yearMatch &&
+          scoreMatch
+        );
+      });
+
+      if(sort === 'score'){
+        list.sort((a,b) =>
+          Number(b.mean || 0) - Number(a.mean || 0)
+        );
+      }
+
+      if(sort === 'popularity'){
+        list.sort((a,b) =>
+          Number(a.popularity || 999999) -
+          Number(b.popularity || 999999)
+        );
+      }
+
+      if(sort === 'title'){
+        list.sort((a,b) =>
+          String(a.title || '').localeCompare(
+            String(b.title || '')
+          )
+        );
+      }
+
+      if(sort === 'newest'){
+        list.sort((a,b) =>
+          String(b.start_date || '').localeCompare(
+            String(a.start_date || '')
+          )
+        );
+      }
+
+      if(typeof renderAnime === 'function'){
+        renderAnime(list, false);
+      }
+
+      status.innerText =
+        list.length +
+        ' anime found';
+
+    }catch(error){
+
+      console.error('Advanced filter error:', error);
+
+      status.innerText =
+        '❌ Filter failed. Please try again.';
+    }
+  }
+
+  function resetAdvancedFilters(){
+
+    [
+      'genreFilter',
+      'typeFilter',
+      'statusFilter',
+      'yearFilter',
+      'sortFilter',
+      'scoreFilter'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+
+    if(typeof loadAnime === 'function'){
+      loadAnime(1);
+    }
+  }
+
+  window.applyFilters = advancedApplyFilters;
+
+  document.addEventListener('DOMContentLoaded', function(){
+
+    const applyButton =
+      document.getElementById('applyAdvancedFilters');
+
+    const resetButton =
+      document.getElementById('resetAdvancedFilters');
+
+    if(applyButton){
+      applyButton.addEventListener(
+        'click',
+        advancedApplyFilters
+      );
+    }
+
+    if(resetButton){
+      resetButton.addEventListener(
+        'click',
+        resetAdvancedFilters
+      );
+    }
+
+  });
+
+})();
 </script>
 
 </body>
