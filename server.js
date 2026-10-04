@@ -31,7 +31,7 @@ app.get('/api/all-anime', async (req, res) => {
         limit: 25,
         offset: (page - 1) * 25,
         fields:
-          'id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,nsfw,genres,my_list_status,num_episodes,start_season,broadcast,source,average_episode_duration,rating,studios'
+          'id,title,media_type,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,nsfw,genres,my_list_status,num_episodes,start_season,broadcast,source,average_episode_duration,rating,studios'
       }
     });
 

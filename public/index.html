@@ -22,7 +22,7 @@
     .close{float:right;font-size:28px;color:#fff;cursor:pointer}
     .details-img{width:180px;max-width:100%;border-radius:8px}
     .meta{color:#bbb;line-height:1.7}
-  </style>
+  .filter-box{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:15px 0}.filter-box select{padding:10px;background:#1e1e1e;color:#fff;border:1px solid #444;border-radius:5px}.filter-box button{padding:10px 15px;background:#ff6600;color:#fff;border:0;border-radius:5px;cursor:pointer}@media(max-width:600px){.filter-box{flex-direction:column}.filter-box select,.filter-box button{width:100%}}\n  </style>
 </head>
 <body>
 
@@ -32,7 +32,36 @@
   <input id="searchInput" type="text" placeholder="Search anime...">
   <button onclick="searchAnime()">Search</button>
 </div>
+<div class="filter-box">
+  <select id="genreFilter">
+    <option value="">🎭 All Genres</option>
+    <option value="Action">Action</option>
+    <option value="Adventure">Adventure</option>
+    <option value="Comedy">Comedy</option>
+    <option value="Drama">Drama</option>
+    <option value="Fantasy">Fantasy</option>
+    <option value="Romance">Romance</option>
+    <option value="Sci-Fi">Sci-Fi</option>
+    <option value="Sports">Sports</option>
+    <option value="Horror">Horror</option>
+  </select>
 
+  <select id="typeFilter">
+    <option value="">📺 All Types</option>
+    <option value="tv">TV</option>
+    <option value="movie">Movie</option>
+    <option value="ova">OVA</option>
+    <option value="ona">ONA</option>
+  </select>
+
+  <select id="sortFilter">
+    <option value="">↕️ Default</option>
+    <option value="score">⭐ Highest Score</option>
+    <option value="title">🔤 A-Z</option>
+  </select>
+
+<button onclick="applyFilters()">🔎 Apply Filters</button>
+</div>
 <div id="status">Loading anime...</div>
 <div id="animeContainer" class="grid"></div>
 
@@ -223,6 +252,55 @@ function escapeHtml(text) {
     .replaceAll('>','&gt;')
     .replaceAll('"','&quot;')
     .replaceAll("'","&#039;");
+}
+
+async function applyFilters() {
+  const genre = document.getElementById('genreFilter').value;
+  const type = document.getElementById('typeFilter').value;
+  const sort = document.getElementById('sortFilter').value;
+
+  const status = document.getElementById('status');
+  status.innerText = '⏳ Applying filters...';
+
+  try {
+    const res = await fetch('/api/all-anime?page=1');
+    if (!res.ok) throw new Error('Filter API error');
+
+    const data = await res.json();
+
+    let list = (data.data || []).filter(item => {
+      const anime = item.node || item;
+
+      const genreMatch =
+        !genre ||
+        (anime.genres || []).some(g => g.name === genre);
+
+      const typeMatch =
+        !type ||
+        anime.media_type === type;
+
+      return genreMatch && typeMatch;
+    });
+
+    if (sort === 'score') {
+      list.sort((a, b) =>
+        (b.node || b).mean - (a.node || a).mean
+      );
+    }
+
+    if (sort === 'title') {
+      list.sort((a, b) =>
+        (a.node || a).title.localeCompare((b.node || b).title)
+      );
+    }
+
+    renderAnime(list, false);
+
+    status.innerText = `${list.length} anime found`;
+  } catch (error) {
+    console.error(error);
+    status.innerText = '❌ Filter failed.';
+  }
 }
 
 loadAnime(1);
