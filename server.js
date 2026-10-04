@@ -159,7 +159,7 @@ app.listen(PORT, () => {
 
 // New Modular Streaming Route (Preserving Existing MAL Catalog)
 const { getAnimeStreams } = require('./providers/gogoProvider');
-app.get('/api/stream/:title/:episode?', async (req, res) => {
+app.get('/api/stream/:title', async (req, res) => { const result = await getAnimeStreams(req.params.title, 1); res.json(result); }); app.get('/api/stream/:title/:episode', async (req, res) => { const result = await getAnimeStreams(req.params.title, parseInt(req.params.episode) || 1); res.json(result); });
   const { title, episode } = req.params;
   const epNum = episode ? parseInt(episode) : 1;
   
