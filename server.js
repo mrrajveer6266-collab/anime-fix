@@ -157,12 +157,24 @@ app.listen(PORT, () => {
    console.log(`Anime Fix server running on port ${PORT}`);
 });
 
-// New Modular Streaming Route (Preserving Existing MAL Catalog)
+// New Modular Streaming Route (Safe Express Syntax)
 const { getAnimeStreams } = require('./providers/gogoProvider');
-app.get('/api/stream/:title', async (req, res) => { const result = await getAnimeStreams(req.params.title, 1); res.json(result); }); app.get('/api/stream/:title/:episode', async (req, res) => { const result = await getAnimeStreams(req.params.title, parseInt(req.params.episode) || 1); res.json(result); });
-  const { title, episode } = req.params;
-  const epNum = episode ? parseInt(episode) : 1;
-  
-  const result = await getAnimeStreams(title, epNum);
-  res.json(result);
+
+app.get('/api/stream/:title', async (req, res) => {
+  try {
+    const result = await getAnimeStreams(req.params.title, 1);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.get('/api/stream/:title/:episode', async (req, res) => {
+  try {
+    const epNum = parseInt(req.params.episode) || 1;
+    const result = await getAnimeStreams(req.params.title, epNum);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
