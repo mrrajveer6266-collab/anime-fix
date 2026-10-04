@@ -1,3 +1,461 @@
+
+<div class="anime-fix-tools">
+
+  <div class="anime-fix-logo">
+    <span class="logo-orbit"></span>
+    <span class="logo-main">ANIME <b>FIX</b></span>
+    <span class="logo-sub">DISCOVER • WATCH • EXPLORE</span>
+  </div>
+
+  <div class="filter-title">
+    <span>⚡</span>
+    <strong>Find Your Anime</strong>
+  </div>
+
+  <div class="anime-filter-grid">
+
+    <label class="anime-filter">
+      <span>🎭</span>
+      <select id="genreFilter">
+        <option value="">All Genres</option>
+        <option value="Action">Action</option>
+        <option value="Adventure">Adventure</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Drama">Drama</option>
+        <option value="Fantasy">Fantasy</option>
+        <option value="Romance">Romance</option>
+        <option value="Sci-Fi">Sci-Fi</option>
+        <option value="Sports">Sports</option>
+        <option value="Horror">Horror</option>
+        <option value="Mystery">Mystery</option>
+        <option value="Supernatural">Supernatural</option>
+        <option value="Thriller">Thriller</option>
+      </select>
+    </label>
+
+    <label class="anime-filter">
+      <span>📺</span>
+      <select id="typeFilter">
+        <option value="">All Types</option>
+        <option value="tv">TV</option>
+        <option value="movie">Movie</option>
+        <option value="ova">OVA</option>
+        <option value="ona">ONA</option>
+        <option value="special">Special</option>
+        <option value="music">Music</option>
+      </select>
+    </label>
+
+    <label class="anime-filter">
+      <span>📡</span>
+      <select id="statusFilter">
+        <option value="">All Status</option>
+        <option value="airing">Airing</option>
+        <option value="finished">Finished</option>
+      </select>
+    </label>
+
+    <label class="anime-filter">
+      <span>📅</span>
+      <select id="yearFilter">
+        <option value="">All Years</option>
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+        <option value="2021">2021</option>
+        <option value="2020">2020</option>
+        <option value="2019">2019</option>
+        <option value="2018">2018</option>
+        <option value="2017">2017</option>
+        <option value="2016">2016</option>
+        <option value="2015">2015</option>
+      </select>
+    </label>
+
+    <label class="anime-filter">
+      <span>↕️</span>
+      <select id="sortFilter">
+        <option value="">Default</option>
+        <option value="score">Top Rated</option>
+        <option value="popularity">Most Popular</option>
+        <option value="title">A–Z</option>
+        <option value="newest">Newest</option>
+      </select>
+    </label>
+
+    <label class="anime-filter">
+      <span>⭐</span>
+      <select id="scoreFilter">
+        <option value="">Any Score</option>
+        <option value="9">9+ Rating</option>
+        <option value="8">8+ Rating</option>
+        <option value="7">7+ Rating</option>
+        <option value="6">6+ Rating</option>
+      </select>
+    </label>
+
+  </div>
+
+  <button id="resetFiltersButton" class="filter-reset">
+    ↩ Reset Filters
+  </button>
+
+  <div id="filterStatus" class="filter-status"></div>
+
+</div>
+
+<style>
+.anime-fix-tools{
+  width:100%;
+  max-width:1200px;
+  margin:24px auto 30px;
+  padding:0 14px;
+  box-sizing:border-box;
+}
+
+.anime-fix-logo{
+  position:relative;
+  width:fit-content;
+  margin:0 auto 22px;
+  padding:14px 28px 12px;
+  text-align:center;
+  border-radius:18px;
+  background:linear-gradient(135deg,#171717,#242424);
+  border:1px solid rgba(255,145,0,.35);
+  box-shadow:0 0 25px rgba(255,115,0,.12);
+  overflow:hidden;
+}
+
+.logo-main{
+  display:block;
+  font-size:27px;
+  font-weight:900;
+  letter-spacing:4px;
+  color:#fff;
+  text-shadow:0 0 12px rgba(255,145,0,.45);
+  animation:logoPulse 2.4s ease-in-out infinite;
+}
+
+.logo-main b{
+  color:#ff8a00;
+}
+
+.logo-sub{
+  display:block;
+  margin-top:4px;
+  font-size:8px;
+  letter-spacing:3px;
+  color:#aaa;
+}
+
+.logo-orbit{
+  position:absolute;
+  width:90px;
+  height:90px;
+  border:2px solid rgba(255,138,0,.25);
+  border-radius:50%;
+  top:-50px;
+  right:-35px;
+  animation:orbitSpin 5s linear infinite;
+}
+
+@keyframes logoPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.025)}
+}
+
+@keyframes orbitSpin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+
+.filter-title{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:12px;
+  font-size:18px;
+  color:#fff;
+}
+
+.filter-title span{
+  color:#ff8a00;
+}
+
+.anime-filter-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.anime-filter{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:48px;
+  padding:5px 12px;
+  border-radius:13px;
+  background:#171717;
+  border:1px solid #303030;
+  transition:.2s;
+}
+
+.anime-filter:hover{
+  border-color:#ff8a00;
+  box-shadow:0 0 15px rgba(255,138,0,.12);
+}
+
+.anime-filter span{
+  font-size:18px;
+  flex-shrink:0;
+}
+
+.anime-filter select{
+  width:100%;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#eee;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.anime-filter select option{
+  background:#171717;
+  color:#fff;
+}
+
+.filter-reset{
+  display:block;
+  margin:15px auto 0;
+  padding:9px 18px;
+  border-radius:20px;
+  border:1px solid #333;
+  background:#171717;
+  color:#bbb;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.filter-reset:hover{
+  color:#fff;
+  border-color:#ff8a00;
+  box-shadow:0 0 12px rgba(255,138,0,.15);
+}
+
+.filter-status{
+  text-align:center;
+  min-height:20px;
+  margin-top:10px;
+  color:#aaa;
+  font-size:13px;
+}
+
+@media(max-width:700px){
+  .anime-fix-tools{
+    margin-top:18px;
+    padding:0 10px;
+  }
+
+  .anime-fix-logo{
+    padding:12px 22px 10px;
+    margin-bottom:18px;
+  }
+
+  .logo-main{
+    font-size:23px;
+    letter-spacing:3px;
+  }
+
+  .anime-filter-grid{
+    grid-template-columns:repeat(2,1fr);
+    gap:9px;
+  }
+
+  .anime-filter{
+    min-height:45px;
+    padding:4px 9px;
+  }
+
+  .anime-filter span{
+    font-size:16px;
+  }
+
+  .anime-filter select{
+    font-size:12px;
+  }
+}
+
+@media(max-width:400px){
+  .anime-filter-grid{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+
+<script>
+(function(){
+
+  let filterData = null;
+
+  function animeObj(item){
+    return item && item.node ? item.node : item;
+  }
+
+  function genresOf(a){
+    return (a.genres || []).map(g =>
+      typeof g === 'string' ? g : (g.name || '')
+    );
+  }
+
+  async function getFilterData(){
+    if(filterData) return filterData;
+
+    const all = [];
+
+    for(let page=1; page<=5; page++){
+      try{
+        const r = await fetch('/api/all-anime?page=' + page + '&_=' + Date.now());
+        if(!r.ok) continue;
+
+        const j = await r.json();
+
+        if(Array.isArray(j.data)){
+          all.push(...j.data.map(animeObj));
+        }
+      }catch(e){
+        console.error('Filter data error:',e);
+      }
+    }
+
+    filterData = all;
+    return all;
+  }
+
+  async function autoFilter(){
+
+    const genre = document.getElementById('genreFilter')?.value || '';
+    const type = document.getElementById('typeFilter')?.value || '';
+    const status = document.getElementById('statusFilter')?.value || '';
+    const year = document.getElementById('yearFilter')?.value || '';
+    const sort = document.getElementById('sortFilter')?.value || '';
+    const score = document.getElementById('scoreFilter')?.value || '';
+
+    const statusBox = document.getElementById('filterStatus');
+
+    if(!genre && !type && !status && !year && !sort && !score){
+      if(window.loadAnime){
+        window.loadAnime(1);
+      }
+      if(statusBox) statusBox.textContent='';
+      return;
+    }
+
+    if(statusBox) statusBox.textContent='⏳ Filtering anime...';
+
+    const list = await getFilterData();
+
+    let result = list.filter(a => {
+
+      if(genre && !genresOf(a).some(g =>
+        g.toLowerCase() === genre.toLowerCase()
+      )) return false;
+
+      if(type && String(a.media_type || '').toLowerCase() !== type)
+        return false;
+
+      if(score && Number(a.mean || 0) < Number(score))
+        return false;
+
+      if(year){
+        const y = a.start_date ? String(a.start_date).slice(0,4) : '';
+        if(y !== year) return false;
+      }
+
+      if(status){
+        const airing = !a.end_date && Number(a.num_episodes || 0) !==
+          Number(a.my_list_status?.num_episodes_watched || 0);
+
+        if(status === 'airing' && !airing) return false;
+        if(status === 'finished' && airing) return false;
+      }
+
+      return true;
+    });
+
+    if(sort === 'score'){
+      result.sort((a,b)=>
+        Number(b.mean||0)-Number(a.mean||0)
+      );
+    }
+
+    if(sort === 'popularity'){
+      result.sort((a,b)=>
+        Number(a.popularity||999999)-Number(b.popularity||999999)
+      );
+    }
+
+    if(sort === 'title'){
+      result.sort((a,b)=>
+        String(a.title||'').localeCompare(String(b.title||''))
+      );
+    }
+
+    if(sort === 'newest'){
+      result.sort((a,b)=>
+        String(b.start_date||'').localeCompare(String(a.start_date||''))
+      );
+    }
+
+    if(window.renderAnime){
+      window.renderAnime(result,false);
+    }
+
+    if(statusBox){
+      statusBox.textContent =
+        '✨ ' + result.length + ' anime found';
+    }
+  }
+
+  function resetFilters(){
+    ['genreFilter','typeFilter','statusFilter','yearFilter',
+     'sortFilter','scoreFilter'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.value='';
+    });
+
+    filterData=null;
+
+    if(window.loadAnime){
+      window.loadAnime(1);
+    }
+
+    const statusBox=document.getElementById('filterStatus');
+    if(statusBox) statusBox.textContent='';
+  }
+
+  document.addEventListener('change',function(e){
+    if(e.target.matches(
+      '#genreFilter,#typeFilter,#statusFilter,#yearFilter,#sortFilter,#scoreFilter'
+    )){
+      autoFilter();
+    }
+  });
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('#resetFiltersButton')){
+      resetFilters();
+    }
+  });
+
+  window.autoFilterAnime=autoFilter;
+  window.resetAnimeFilters=resetFilters;
+
+})();
+</script>
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -102,81 +560,7 @@
 
 
 
-<div id="animeFilters" class="anime-filters">
 
-  <select id="genreFilter">
-    <option value="">🎭 All Genres</option>
-    <option value="Action">Action</option>
-    <option value="Adventure">Adventure</option>
-    <option value="Comedy">Comedy</option>
-    <option value="Drama">Drama</option>
-    <option value="Fantasy">Fantasy</option>
-    <option value="Romance">Romance</option>
-    <option value="Sci-Fi">Sci-Fi</option>
-    <option value="Sports">Sports</option>
-    <option value="Horror">Horror</option>
-    <option value="Mystery">Mystery</option>
-    <option value="Supernatural">Supernatural</option>
-    <option value="Thriller">Thriller</option>
-  </select>
-
-  <select id="typeFilter">
-    <option value="">📺 All Types</option>
-    <option value="tv">TV</option>
-    <option value="movie">Movie</option>
-    <option value="ova">OVA</option>
-    <option value="ona">ONA</option>
-    <option value="special">Special</option>
-    <option value="music">Music</option>
-  </select>
-
-  <select id="statusFilter">
-    <option value="">📡 All Status</option>
-    <option value="airing">Currently Airing</option>
-    <option value="finished">Finished</option>
-  </select>
-
-  <select id="yearFilter">
-    <option value="">📅 All Years</option>
-    <option value="2026">2026</option>
-    <option value="2025">2025</option>
-    <option value="2024">2024</option>
-    <option value="2023">2023</option>
-    <option value="2022">2022</option>
-    <option value="2021">2021</option>
-    <option value="2020">2020</option>
-    <option value="2019">2019</option>
-    <option value="2018">2018</option>
-    <option value="2017">2017</option>
-    <option value="2016">2016</option>
-    <option value="2015">2015</option>
-  </select>
-
-  <select id="sortFilter">
-    <option value="">↕️ Default</option>
-    <option value="score">⭐ Highest Score</option>
-    <option value="popularity">🔥 Most Popular</option>
-    <option value="title">🔤 A-Z</option>
-    <option value="newest">🆕 Newest</option>
-  </select>
-
-  <select id="scoreFilter">
-    <option value="">⭐ Any Score</option>
-    <option value="9">9+</option>
-    <option value="8">8+</option>
-    <option value="7">7+</option>
-    <option value="6">6+</option>
-  </select>
-
-  <button type="button" id="applyFiltersButton">
-    🔎 Apply Filters
-  </button>
-
-  <button type="button" id="resetFiltersButton">
-    ↩️ Reset
-  </button>
-
-</div>
 
 <div id="status">Loading anime...</div>
 <div id="animeContainer" class="grid"></div>
