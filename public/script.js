@@ -149,3 +149,49 @@ window.openAnimePlayer = function(title, ep) {
 
   playerModal.style.display = 'flex';
 };
+
+
+// --- UNIVERSAL PLAYER & WATCH BUTTON FIX ---
+(function() {
+  window.openAnimePlayer = function(title, ep) {
+    ep = ep || 1;
+    var cleanTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    var embedUrl = "https://vidsrc.to/embed/anime/" + cleanTitle + "/" + ep;
+
+    var playerModal = document.getElementById('animeInWebsitePlayer');
+    if (!playerModal) {
+      playerModal = document.createElement('div');
+      playerModal.id = 'animeInWebsitePlayer';
+      playerModal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; box-sizing:border-box;';
+      document.body.appendChild(playerModal);
+    }
+
+    var epBtns = '';
+    for(var i=1; i<=24; i++){
+      epBtns += '<button onclick="openAnimePlayer(\'' + title.replace(/'/g, "\'") + '\', ' + i + ')" style="background:' + (i==ep?'#ff4757':'#333') + '; color:#fff; border:none; padding:8px 14px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold; flex-shrink:0;">Ep ' + i + '</button>';
+    }
+
+    playerModal.innerHTML = '<div style="width:100%; max-width:900px; background:#181818; border-radius:12px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:1px solid #333;"><div style="padding:12px 20px; background:#222; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;"><h3 style="color:#fff; margin:0; font-size:16px;">Watching: ' + title + ' - Episode ' + ep + '</h3><button onclick="document.getElementById(\'animeInWebsitePlayer\').style.display=\'none\'; document.getElementById(\'animeInWebsitePlayer\').innerHTML=\'\';" style="background:#ff4d4d; color:#fff; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:bold;">✕ Close</button></div><div style="position:relative; width:100%; height:0; padding-bottom:56.25%; background:#000;"><iframe src="' + embedUrl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe></div><div style="padding:15px; background:#181818;"><p style="color:#aaa; margin:0 0 10px 0; font-size:13px;">Select Episode:</p><div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:5px;">' + epBtns + '</div></div></div>';
+
+    playerModal.style.display = 'flex';
+  };
+
+  // Continuous check to inject watch button inside ANY open modal
+  setInterval(function() {
+    var allDivs = document.querySelectorAll('div');
+    allDivs.forEach(function(div) {
+      var style = window.getComputedStyle(div);
+      if ((style.position === 'fixed' || style.position === 'absolute') && style.display !== 'none' && div.id !== 'animeInWebsitePlayer') {
+        var heading = div.querySelector('h1, h2, h3, h4, .title, [class*="title"]');
+        if (heading && !div.querySelector('.fix-watch-btn-injected')) {
+          var titleText = heading.innerText.trim() || 'anime';
+          var btnContainer = document.createElement('div');
+          btnContainer.className = 'fix-watch-btn-injected';
+          btnContainer.style.cssText = 'margin:15px 0; width:100%; text-align:center;';
+          btnContainer.innerHTML = '<button onclick="openAnimePlayer(\'' + titleText.replace(/'/g, "\'") + '\', 1)" style="background:linear-gradient(45deg, #ff4757, #ff6b81); color:#fff; border:none; padding:14px 20px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; width:90%; box-shadow:0 4px 15px rgba(255,71,87,0.5);">▶ Watch Episode 1 Now</button>';
+          heading.parentNode.insertBefore(btnContainer, heading.nextSibling);
+        }
+      }
+    });
+  }, 300);
+})();
