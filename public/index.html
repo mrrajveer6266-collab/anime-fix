@@ -24,58 +24,68 @@
     .meta{color:#bbb;line-height:1.7}
   .filter-box{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:15px 0}.filter-box select{padding:10px;background:#1e1e1e;color:#fff;border:1px solid #444;border-radius:5px}.filter-box button{padding:10px 15px;background:#ff6600;color:#fff;border:0;border-radius:5px;cursor:pointer}@media(max-width:600px){.filter-box{flex-direction:column}.filter-box select,.filter-box button{width:100%}}\n  </style>
 
+
+
+
 <style>
-#advancedFilterBox{
+.anime-filters{
   display:flex;
   flex-wrap:wrap;
-  gap:10px;
   justify-content:center;
   align-items:center;
-  margin:18px auto;
+  gap:10px;
+  width:100%;
   max-width:1200px;
+  margin:18px auto;
   padding:12px;
+  box-sizing:border-box;
 }
 
-#advancedFilterBox select,
-#advancedFilterBox button{
-  min-height:42px;
-  padding:10px 14px;
-  border-radius:8px;
-  border:1px solid #444;
-  font-size:14px;
-}
-
-#advancedFilterBox select{
+.anime-filters select{
+  min-width:145px;
+  min-height:44px;
+  padding:10px 12px;
   background:#1e1e1e;
   color:#fff;
+  border:1px solid #555;
+  border-radius:8px;
+  font-size:14px;
+  outline:none;
 }
 
-#advancedFilterBox button{
+.anime-filters select:focus{
+  border-color:#ff6600;
+}
+
+.anime-filters button{
+  min-height:44px;
+  padding:10px 16px;
+  border:0;
+  border-radius:8px;
   background:#ff6600;
   color:#fff;
-  border:0;
+  font-weight:700;
   cursor:pointer;
-  font-weight:600;
 }
 
-#advancedFilterBox button:hover{
-  opacity:.88;
+.anime-filters button:active{
+  transform:scale(.97);
 }
 
-#resetAdvancedFilters{
-  background:#444 !important;
+#resetFiltersButton{
+  background:#444;
 }
 
 @media(max-width:600px){
-  #advancedFilterBox{
+  .anime-filters{
     flex-direction:column;
-    width:calc(100% - 24px);
-    box-sizing:border-box;
+    padding:10px;
   }
 
-  #advancedFilterBox select,
-  #advancedFilterBox button{
+  .anime-filters select,
+  .anime-filters button{
     width:100%;
+    min-width:0;
   }
 }
 </style>
@@ -91,7 +101,9 @@
 </div>
 
 
-<div class="filter-box" id="advancedFilterBox">
+
+<div id="animeFilters" class="anime-filters">
+
   <select id="genreFilter">
     <option value="">🎭 All Genres</option>
     <option value="Action">Action</option>
@@ -143,7 +155,7 @@
   <select id="sortFilter">
     <option value="">↕️ Default</option>
     <option value="score">⭐ Highest Score</option>
-    <option value="popularity">🔥 Popularity</option>
+    <option value="popularity">🔥 Most Popular</option>
     <option value="title">🔤 A-Z</option>
     <option value="newest">🆕 Newest</option>
   </select>
@@ -156,8 +168,14 @@
     <option value="6">6+</option>
   </select>
 
-  <button type="button" id="applyAdvancedFilters">🔎 Apply Filters</button>
-  <button type="button" id="resetAdvancedFilters">↩️ Reset</button>
+  <button type="button" id="applyFiltersButton">
+    🔎 Apply Filters
+  </button>
+
+  <button type="button" id="resetFiltersButton">
+    ↩️ Reset
+  </button>
+
 </div>
 
 <div id="status">Loading anime...</div>
@@ -405,148 +423,229 @@ loadAnime(1);
 </script>
 
 
+
+
+
 <script>
 (function(){
 
-  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  let filterAnimeData = [];
 
-  function getAnime(item){
-    return item.node || item;
+  function animeObject(item){
+    return item && item.node ? item.node : item;
   }
 
-  async function getAnimePages(maxPages = 5){
+  function getGenreNames(anime){
+    return (anime.genres || []).map(function(g){
+      return String(g.name || '').toLowerCase();
+    });
+  }
+
+  async function loadFilterData(){
+
+    if(filterAnimeData.length > 0){
+      return filterAnimeData;
+    }
+
     const all = [];
 
-    for(let page = 1; page <= maxPages; page++){
-      try{
-        const response = await fetch('/api/all-anime?page=' + page);
+    for(let page = 1; page <= 5; page++){
 
-        if(!response.ok){
-          throw new Error('API error on page ' + page);
+      const response = await fetch(
+        '/api/all-anime?page=' + page,
+        { cache: 'no-store' }
+      );
+
+      if(!response.ok){
+        throw new Error('Anime API error: ' + response.status);
+      }
+
+      const json = await response.json();
+      const rows = json.data || [];
+
+      rows.forEach(function(row){
+        const anime = animeObject(row);
+        if(anime && anime.id){
+          all.push(anime);
         }
+      });
 
-        const data = await response.json();
-        const items = data.data || [];
-
-        all.push(...items);
-
-        if(items.length < 25) break;
-
-        await sleep(350);
-      }catch(error){
-        console.error(error);
+      if(rows.length < 25){
         break;
       }
     }
 
+    filterAnimeData = all;
     return all;
   }
 
-  async function advancedApplyFilters(){
+  function renderResults(list){
 
-    const status = document.getElementById('status');
+    if(typeof window.renderAnime === 'function'){
+      window.renderAnime(list, false);
+      return;
+    }
 
-    const genre = document.getElementById('genreFilter').value;
-    const type = document.getElementById('typeFilter').value;
-    const animeStatus = document.getElementById('statusFilter').value;
-    const year = document.getElementById('yearFilter').value;
-    const sort = document.getElementById('sortFilter').value;
-    const minScore = document.getElementById('scoreFilter').value;
+    const container =
+      document.getElementById('animeContainer');
 
-    status.innerText = '⏳ Loading anime for filters...';
+    if(!container){
+      throw new Error('animeContainer not found');
+    }
+
+    container.innerHTML = '';
+
+    list.forEach(function(anime){
+
+      const image =
+        anime.main_picture &&
+        anime.main_picture.large
+          ? anime.main_picture.large
+          : anime.main_picture &&
+            anime.main_picture.medium
+              ? anime.main_picture.medium
+              : '';
+
+      const card = document.createElement('div');
+
+      card.className = 'anime-card';
+
+      card.innerHTML =
+        '<img src="' + image + '" alt="' +
+        String(anime.title || '').replace(/"/g,'&quot;') +
+        '">' +
+        '<h3>' +
+        String(anime.title || '') +
+        '</h3>';
+
+      container.appendChild(card);
+    });
+  }
+
+  async function applyAnimeFilters(){
+
+    const status =
+      document.getElementById('status');
+
+    const genre =
+      document.getElementById('genreFilter').value.toLowerCase();
+
+    const type =
+      document.getElementById('typeFilter').value;
+
+    const selectedStatus =
+      document.getElementById('statusFilter').value;
+
+    const year =
+      document.getElementById('yearFilter').value;
+
+    const sort =
+      document.getElementById('sortFilter').value;
+
+    const minScore =
+      document.getElementById('scoreFilter').value;
+
+    if(status){
+      status.innerText = '⏳ Applying filters...';
+    }
 
     try{
 
-      const rawList = await getAnimePages(5);
+      const data = await loadFilterData();
 
-      let list = rawList
-        .map(getAnime)
-        .filter(Boolean);
+      let results = data.filter(function(anime){
 
-      list = list.filter(anime => {
+        const genres = getGenreNames(anime);
 
-        const genreMatch =
-          !genre ||
-          (anime.genres || []).some(g =>
-            String(g.name || '').toLowerCase() === genre.toLowerCase()
-          );
+        const genreOK =
+          !genre || genres.includes(genre);
 
-        const typeMatch =
+        const typeOK =
           !type || anime.media_type === type;
 
-        const startDate = anime.start_date || '';
-        const endDate = anime.end_date || '';
+        const score =
+          Number(anime.mean || 0);
 
-        const statusMatch =
-          !animeStatus ||
-          (animeStatus === 'finished' && !!endDate) ||
-          (animeStatus === 'airing' && !endDate);
+        const scoreOK =
+          !minScore ||
+          score >= Number(minScore);
 
-        const yearMatch =
+        const yearOK =
           !year ||
-          startDate.startsWith(year);
+          String(anime.start_date || '')
+            .startsWith(year);
 
-        const score = Number(anime.mean || 0);
+        let statusOK = true;
 
-        const scoreMatch =
-          !minScore || score >= Number(minScore);
+        if(selectedStatus === 'finished'){
+          statusOK =
+            anime.end_date !== null &&
+            anime.end_date !== undefined &&
+            anime.end_date !== '';
+        }
+
+        if(selectedStatus === 'airing'){
+          statusOK =
+            !anime.end_date ||
+            anime.end_date === null;
+        }
 
         return (
-          genreMatch &&
-          typeMatch &&
-          statusMatch &&
-          yearMatch &&
-          scoreMatch
+          genreOK &&
+          typeOK &&
+          scoreOK &&
+          yearOK &&
+          statusOK
         );
       });
 
       if(sort === 'score'){
-        list.sort((a,b) =>
-          Number(b.mean || 0) - Number(a.mean || 0)
-        );
+        results.sort(function(a,b){
+          return Number(b.mean || 0) -
+                 Number(a.mean || 0);
+        });
       }
 
       if(sort === 'popularity'){
-        list.sort((a,b) =>
-          Number(a.popularity || 999999) -
-          Number(b.popularity || 999999)
-        );
+        results.sort(function(a,b){
+          return Number(a.popularity || 999999) -
+                 Number(b.popularity || 999999);
+        });
       }
 
       if(sort === 'title'){
-        list.sort((a,b) =>
-          String(a.title || '').localeCompare(
-            String(b.title || '')
-          )
-        );
+        results.sort(function(a,b){
+          return String(a.title || '')
+            .localeCompare(String(b.title || ''));
+        });
       }
 
       if(sort === 'newest'){
-        list.sort((a,b) =>
-          String(b.start_date || '').localeCompare(
-            String(a.start_date || '')
-          )
-        );
+        results.sort(function(a,b){
+          return String(b.start_date || '')
+            .localeCompare(String(a.start_date || ''));
+        });
       }
 
-      if(typeof renderAnime === 'function'){
-        renderAnime(list, false);
-      }
+      renderResults(results);
 
-      status.innerText =
-        list.length +
-        ' anime found';
+      if(status){
+        status.innerText =
+          '✅ ' + results.length + ' anime found';
+      }
 
     }catch(error){
 
-      console.error('Advanced filter error:', error);
+      console.error('Anime Fix filter error:', error);
 
-      status.innerText =
-        '❌ Filter failed. Please try again.';
+      if(status){
+        status.innerText =
+          '❌ Filter error: ' + error.message;
+      }
     }
   }
 
-  function resetAdvancedFilters(){
+  function resetAnimeFilters(){
 
     [
       'genreFilter',
@@ -555,41 +654,42 @@ loadAnime(1);
       'yearFilter',
       'sortFilter',
       'scoreFilter'
-    ].forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.value = '';
+    ].forEach(function(id){
+
+      const element =
+        document.getElementById(id);
+
+      if(element){
+        element.value = '';
+      }
+
     });
 
-    if(typeof loadAnime === 'function'){
-      loadAnime(1);
+    filterAnimeData = [];
+
+    if(typeof window.loadAnime === 'function'){
+      window.loadAnime(1);
+    }else{
+      location.reload();
     }
   }
 
-  window.applyFilters = advancedApplyFilters;
+  document.addEventListener('click', function(event){
 
-  document.addEventListener('DOMContentLoaded', function(){
-
-    const applyButton =
-      document.getElementById('applyAdvancedFilters');
-
-    const resetButton =
-      document.getElementById('resetAdvancedFilters');
-
-    if(applyButton){
-      applyButton.addEventListener(
-        'click',
-        advancedApplyFilters
-      );
+    if(event.target.closest('#applyFiltersButton')){
+      event.preventDefault();
+      applyAnimeFilters();
     }
 
-    if(resetButton){
-      resetButton.addEventListener(
-        'click',
-        resetAdvancedFilters
-      );
+    if(event.target.closest('#resetFiltersButton')){
+      event.preventDefault();
+      resetAnimeFilters();
     }
 
   });
+
+  window.applyAnimeFilters = applyAnimeFilters;
+  window.resetAnimeFilters = resetAnimeFilters;
 
 })();
 </script>
