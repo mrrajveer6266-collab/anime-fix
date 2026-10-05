@@ -11,20 +11,19 @@ function slugify(text) {
 }
 
 async function loadTopAnime() {
-  const grid = document.getElementById('animeGrid');
   const status = document.getElementById('statusText');
   if (status) status.innerHTML = '⏳ Fetching latest anime catalog...';
 
   try {
-    const res = await fetch('https://api.jikan.moe/v4/top/anime?limit=24');
-    const data = await res.json();
+    const res = await fetch('/api/anime/top');
+    const result = await res.json();
     
-    if (data && data.data) {
-      rawAnimeList = data.data;
+    if (result && result.data) {
+      rawAnimeList = result.data.map(item => item.node);
       renderAnimeList(rawAnimeList);
       if (status) status.innerHTML = `Showing Top <b>${rawAnimeList.length}</b> Trending Anime`;
     } else {
-      if (status) status.innerHTML = 'Failed to load anime. Please refresh.';
+      if (status) status.innerHTML = 'Failed to load anime. Please check API settings.';
     }
   } catch (err) {
     console.error(err);
@@ -43,10 +42,10 @@ function renderAnimeList(list) {
   }
 
   list.forEach(item => {
-    const title = item.title_english || item.title;
-    const score = item.score ? item.score : 'N/A';
-    const eps = item.episodes ? `${item.episodes} Ep` : 'Airing';
-    const img = item.images?.jpg?.large_image_url || item.images?.jpg?.image_url;
+    const title = item.title;
+    const score = item.mean ? item.mean : 'N/A';
+    const eps = item.num_episodes ? `${item.num_episodes} Ep` : 'Airing';
+    const img = item.main_picture?.large || item.main_picture?.medium || 'https://via.placeholder.com/300x400';
 
     const card = document.createElement('div');
     card.className = 'anime-card';
@@ -57,8 +56,8 @@ function renderAnimeList(list) {
       </div>
       <div class="card-info">
         <div class="card-title">${title}</div>
-        <div class="card-meta">📺 ${eps} • ${item.type || 'TV'}</div>
-        <button class="watch-btn" onclick="openPlayer('${title.replace(/'/g, "\\'")}', ${item.episodes || 12})">
+        <div class="card-meta">📺 ${eps} • ${(item.media_type || 'TV').toUpperCase()}</div>
+        <button class="watch-btn" onclick="openPlayer('${title.replace(/'/g, "\\'")}', ${item.num_episodes || 12})">
           ▶ Watch Now
         </button>
       </div>
@@ -75,12 +74,14 @@ async function handleSearch() {
   if (status) status.innerHTML = `🔍 Searching for "${query}"...`;
 
   try {
-    const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=24`);
-    const data = await res.json();
-    if (data && data.data) {
-      rawAnimeList = data.data;
+    const res = await fetch(`/api/anime/search?q=${encodeURIComponent(query)}`);
+    const result = await res.json();
+    if (result && result.data) {
+      rawAnimeList = result.data.map(item => item.node);
       renderAnimeList(rawAnimeList);
       if (status) status.innerHTML = `Found <b>${rawAnimeList.length}</b> results for "${query}"`;
+    } else {
+      if (status) status.innerHTML = 'No results found.';
     }
   } catch (e) {
     if (status) status.innerHTML = 'Error searching anime.';
@@ -89,13 +90,11 @@ async function handleSearch() {
 
 function applyFilters() {
   const type = document.getElementById('typeFilter').value;
-  const statusFilter = document.getElementById('statusFilter').value;
   const rating = document.getElementById('ratingFilter').value;
 
   let filtered = rawAnimeList.filter(item => {
-    if (type && (item.type || '').toLowerCase() !== type) return false;
-    if (statusFilter && (item.status || '').toLowerCase().indexOf(statusFilter) === -1) return false;
-    if (rating && (item.score || 0) < Number(rating)) return false;
+    if (type && (item.media_type || '').toLowerCase() !== type) return false;
+    if (rating && (item.mean || 0) < Number(rating)) return false;
     return true;
   });
 
