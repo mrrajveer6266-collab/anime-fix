@@ -1,4 +1,6 @@
 let rawAnimeList = [];
+let currentOffset = 0;
+let currentSearchQuery = "";
 let currentSlug = "";
 let currentEp = 1;
 let currentServer = 1;
@@ -10,20 +12,25 @@ function slugify(text) {
     .replace(/\-\-+/g, '-');
 }
 
-async function loadTopAnime() {
+async function loadTopAnime(isLoadMore = false) {
   const status = document.getElementById('statusText');
-  if (status) status.innerHTML = '⏳ Fetching latest anime catalog...';
+  
+  if (!isLoadMore) {
+    currentOffset = 0;
+    rawAnimeList = [];
+    currentSearchQuery = "";
+    if (status) status.innerHTML = '⏳ Fetching latest anime catalog...';
+  }
 
   try {
-    const res = await fetch('/api/anime/top');
+    const res = await fetch(`/api/anime/top?offset=${currentOffset}`);
     const result = await res.json();
     
     if (result && result.data) {
-      rawAnimeList = result.data.map(item => item.node);
+      const newItems = result.data.map(item => item.node);
+      rawAnimeList = rawAnimeList.concat(newItems);
       renderAnimeList(rawAnimeList);
-      if (status) status.innerHTML = `Showing Top <b>${rawAnimeList.length}</b> Trending Anime`;
-    } else {
-      if (status) status.innerHTML = 'Failed to load anime. Please check API settings.';
+      if (status) status.innerHTML = `Showing <b>${rawAnimeList.length}</b> Anime`;
     }
   } catch (err) {
     console.error(err);
@@ -34,10 +41,11 @@ async function loadTopAnime() {
 function renderAnimeList(list) {
   const grid = document.getElementById('animeGrid');
   if (!grid) return;
+
   grid.innerHTML = '';
 
   if (list.length === 0) {
-    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#aaa;">No anime found matching criteria.</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#aaa;">No anime found.</div>';
     return;
   }
 
@@ -64,49 +72,53 @@ function renderAnimeList(list) {
     `;
     grid.appendChild(card);
   });
+
+  let loadMoreBtn = document.getElementById('loadMoreBtn');
+  if (!loadMoreBtn) {
+    loadMoreBtn = document.createElement('button');
+    loadMoreBtn.id = 'loadMoreBtn';
+    loadMoreBtn.style.cssText = 'grid-column: 1/-1; margin: 30px auto; display: block; padding: 12px 30px; background: #ff6600; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;';
+    loadMoreBtn.innerText = '⬇ Load More Anime';
+    loadMoreBtn.onclick = handleLoadMore;
+  }
+  grid.appendChild(loadMoreBtn);
 }
 
-async function handleSearch() {
+function handleLoadMore() {
+  currentOffset += 50;
+  if (currentSearchQuery) {
+    handleSearch(true);
+  } else {
+    loadTopAnime(true);
+  }
+}
+
+async function handleSearch(isLoadMore = false) {
   const query = document.getElementById('searchInput').value.trim();
+  const status = document.getElementById('statusText');
+
   if (!query) { loadTopAnime(); return; }
 
-  const status = document.getElementById('statusText');
+  if (!isLoadMore) {
+    currentOffset = 0;
+    rawAnimeList = [];
+    currentSearchQuery = query;
+  }
+
   if (status) status.innerHTML = `🔍 Searching for "${query}"...`;
 
   try {
-    const res = await fetch(`/api/anime/search?q=${encodeURIComponent(query)}`);
+    const res = await fetch(`/api/anime/search?q=${encodeURIComponent(query)}&offset=${currentOffset}`);
     const result = await res.json();
     if (result && result.data) {
-      rawAnimeList = result.data.map(item => item.node);
+      const newItems = result.data.map(item => item.node);
+      rawAnimeList = rawAnimeList.concat(newItems);
       renderAnimeList(rawAnimeList);
       if (status) status.innerHTML = `Found <b>${rawAnimeList.length}</b> results for "${query}"`;
-    } else {
-      if (status) status.innerHTML = 'No results found.';
     }
   } catch (e) {
     if (status) status.innerHTML = 'Error searching anime.';
   }
-}
-
-function applyFilters() {
-  const type = document.getElementById('typeFilter').value;
-  const rating = document.getElementById('ratingFilter').value;
-
-  let filtered = rawAnimeList.filter(item => {
-    if (type && (item.media_type || '').toLowerCase() !== type) return false;
-    if (rating && (item.mean || 0) < Number(rating)) return false;
-    return true;
-  });
-
-  renderAnimeList(filtered);
-}
-
-function resetFilters() {
-  document.getElementById('typeFilter').value = '';
-  document.getElementById('statusFilter').value = '';
-  document.getElementById('ratingFilter').value = '';
-  document.getElementById('searchInput').value = '';
-  loadTopAnime();
 }
 
 function openPlayer(title, totalEps) {
@@ -136,9 +148,11 @@ function updatePlayerEmbed() {
   let embedUrl = "";
 
   if (currentServer === 1) {
-    embedUrl = `https://em.gogoanime.bid/streaming.php?id=${currentSlug}-episode-${currentEp}`;
-  } else {
     embedUrl = `https://vidsrc.to/embed/anime/${currentSlug}/${currentEp}`;
+  } else if (currentServer === 2) {
+    embedUrl = `https://2embed.org/embed/anime/${currentSlug}/${currentEp}`;
+  } else {
+    embedUrl = `https://anime.consun.workers.dev/?title=${currentSlug}&ep=${currentEp}`;
   }
 
   iframe.src = embedUrl;
@@ -165,4 +179,4 @@ document.getElementById('searchInput')?.addEventListener('keypress', function(e)
   if (e.key === 'Enter') handleSearch();
 });
 
-window.onload = loadTopAnime;
+window.onload = () => loadTopAnime(false);
