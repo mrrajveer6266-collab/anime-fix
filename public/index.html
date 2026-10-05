@@ -18,7 +18,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background: var(--bg); color: var(--text); padding-bottom: 40px; }
 
-    /* Header & Branding */
     header {
       background: #121318;
       border-bottom: 2px solid var(--primary);
@@ -37,7 +36,6 @@
 
     .container { max-width: 1200px; margin: 0 auto; padding: 20px 15px; }
 
-    /* Search & Filter Bar */
     .controls {
       background: var(--card-bg);
       padding: 18px;
@@ -86,7 +84,6 @@
     }
     .filter-grid select:focus { border-color: var(--primary); }
     .reset-btn {
-      grid-column: span 1;
       background: #2a2d38;
       color: #fff;
       border: none;
@@ -97,10 +94,8 @@
     }
     .reset-btn:hover { background: #3a3f50; }
 
-    /* Status Bar */
     #statusText { text-align: center; margin-bottom: 20px; color: var(--subtext); font-size: 14px; }
 
-    /* Anime Grid */
     .anime-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -172,7 +167,6 @@
     }
     .watch-btn:hover { background: var(--primary-hover); }
 
-    /* Video Player Overlay Modal */
     #playerModal {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -264,13 +258,11 @@
   </header>
 
   <div class="container">
-    
     <div class="controls">
       <div class="search-row">
-        <input type="text" id="searchInput" placeholder="Search any anime (e.g. Naruto, One Piece, Bleach)...">
+        <input type="text" id="searchInput" placeholder="Search any anime (e.g. Naruto, One Piece)...">
         <button onclick="handleSearch()">Search</button>
       </div>
-
       <div class="filter-grid">
         <select id="typeFilter" onchange="applyFilters()">
           <option value="">All Types</option>
@@ -278,31 +270,25 @@
           <option value="movie">Movie</option>
           <option value="ova">OVA</option>
         </select>
-
         <select id="statusFilter" onchange="applyFilters()">
           <option value="">All Status</option>
           <option value="airing">Currently Airing</option>
           <option value="complete">Finished</option>
         </select>
-
         <select id="ratingFilter" onchange="applyFilters()">
           <option value="">Any Rating</option>
           <option value="9">⭐ 9+ Rating</option>
           <option value="8">⭐ 8+ Rating</option>
           <option value="7">⭐ 7+ Rating</option>
         </select>
-
         <button class="reset-btn" onclick="resetFilters()">↩ Reset</button>
       </div>
     </div>
 
     <div id="statusText">Loading Top Anime...</div>
-
     <div class="anime-grid" id="animeGrid"></div>
-
   </div>
 
-  <!-- Fullscreen Video Overlay -->
   <div id="playerModal">
     <div class="player-box">
       <div class="player-header">

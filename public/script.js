@@ -10,11 +10,10 @@ function slugify(text) {
     .replace(/\-\-+/g, '-');
 }
 
-// 1. Fetch Anime from Jikan API
 async function loadTopAnime() {
   const grid = document.getElementById('animeGrid');
   const status = document.getElementById('statusText');
-  status.innerHTML = '⏳ Fetching latest anime catalog...';
+  if (status) status.innerHTML = '⏳ Fetching latest anime catalog...';
 
   try {
     const res = await fetch('https://api.jikan.moe/v4/top/anime?limit=24');
@@ -23,19 +22,19 @@ async function loadTopAnime() {
     if (data && data.data) {
       rawAnimeList = data.data;
       renderAnimeList(rawAnimeList);
-      status.innerHTML = `Showing Top <b>${rawAnimeList.length}</b> Trending Anime`;
+      if (status) status.innerHTML = `Showing Top <b>${rawAnimeList.length}</b> Trending Anime`;
     } else {
-      status.innerHTML = 'Failed to load anime. Please refresh.';
+      if (status) status.innerHTML = 'Failed to load anime. Please refresh.';
     }
   } catch (err) {
     console.error(err);
-    status.innerHTML = '⚠️ Network error loading anime.';
+    if (status) status.innerHTML = '⚠️ Network error loading anime.';
   }
 }
 
-// 2. Render Cards
 function renderAnimeList(list) {
   const grid = document.getElementById('animeGrid');
+  if (!grid) return;
   grid.innerHTML = '';
 
   if (list.length === 0) {
@@ -68,13 +67,12 @@ function renderAnimeList(list) {
   });
 }
 
-// 3. Search Anime
 async function handleSearch() {
   const query = document.getElementById('searchInput').value.trim();
   if (!query) { loadTopAnime(); return; }
 
   const status = document.getElementById('statusText');
-  status.innerHTML = `🔍 Searching for "${query}"...`;
+  if (status) status.innerHTML = `🔍 Searching for "${query}"...`;
 
   try {
     const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=24`);
@@ -82,14 +80,13 @@ async function handleSearch() {
     if (data && data.data) {
       rawAnimeList = data.data;
       renderAnimeList(rawAnimeList);
-      status.innerHTML = `Found <b>${rawAnimeList.length}</b> results for "${query}"`;
+      if (status) status.innerHTML = `Found <b>${rawAnimeList.length}</b> results for "${query}"`;
     }
   } catch (e) {
-    status.innerHTML = 'Error searching anime.';
+    if (status) status.innerHTML = 'Error searching anime.';
   }
 }
 
-// 4. Filters
 function applyFilters() {
   const type = document.getElementById('typeFilter').value;
   const statusFilter = document.getElementById('statusFilter').value;
@@ -113,7 +110,6 @@ function resetFilters() {
   loadTopAnime();
 }
 
-// 5. Stream Player System
 function openPlayer(title, totalEps) {
   currentSlug = slugify(title);
   currentEp = 1;
@@ -121,7 +117,6 @@ function openPlayer(title, totalEps) {
 
   document.getElementById('playerTitle').innerText = `Watching: ${title}`;
   
-  // Populate Episode Dropdown
   const epSelector = document.getElementById('epSelector');
   epSelector.innerHTML = '';
   const epCount = totalEps > 0 ? Math.min(totalEps, 500) : 24;
@@ -167,10 +162,8 @@ function closePlayer() {
   document.getElementById('mainIframe').src = '';
 }
 
-// Enter Key Search Bind
 document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
   if (e.key === 'Enter') handleSearch();
 });
 
-// Initial Load
 window.onload = loadTopAnime;
