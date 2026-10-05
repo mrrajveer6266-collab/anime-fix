@@ -1,7 +1,7 @@
 let rawAnimeList = [];
 let currentOffset = 0;
 let currentSearchQuery = "";
-let currentSlug = "";
+let currentAnime = null;
 let currentEp = 1;
 let currentServer = 1;
 
@@ -65,7 +65,7 @@ function renderAnimeList(list) {
       <div class="card-info">
         <div class="card-title">${title}</div>
         <div class="card-meta">📺 ${eps} • ${(item.media_type || 'TV').toUpperCase()}</div>
-        <button class="watch-btn" onclick="openPlayer('${title.replace(/'/g, "\\'")}', ${item.num_episodes || 12})">
+        <button class="watch-btn" onclick="openWatchPage(${item.id})">
           ▶ Watch Now
         </button>
       </div>
@@ -121,57 +121,74 @@ async function handleSearch(isLoadMore = false) {
   }
 }
 
-function openPlayer(title, totalEps) {
-  currentSlug = slugify(title);
+function openWatchPage(animeId) {
+  currentAnime = rawAnimeList.find(a => a.id === animeId);
+  if (!currentAnime) return;
+
   currentEp = 1;
   currentServer = 1;
 
-  document.getElementById('playerTitle').innerText = `Watching: ${title}`;
-  
-  const epSelector = document.getElementById('epSelector');
-  epSelector.innerHTML = '';
-  const epCount = totalEps > 0 ? Math.min(totalEps, 500) : 24;
-  
-  for (let i = 1; i <= epCount; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.innerText = `Episode ${i}`;
-    epSelector.appendChild(opt);
-  }
+  document.getElementById('catalogPage').style.display = 'none';
+  document.getElementById('watchPage').style.display = 'block';
+  window.scrollTo(0,0);
 
-  updatePlayerEmbed();
-  document.getElementById('playerModal').style.display = 'flex';
+  document.getElementById('detailTitle').innerText = currentAnime.title;
+  document.getElementById('detailPoster').src = currentAnime.main_picture?.large || currentAnime.main_picture?.medium;
+  document.getElementById('detailMeta').innerText = `⭐ ${currentAnime.mean || 'N/A'} • ${currentAnime.num_episodes || 12} Episodes • ${(currentAnime.media_type || 'TV').toUpperCase()}`;
+  document.getElementById('detailSynopsis').innerText = currentAnime.synopsis || "Stream all episodes in high definition.";
+
+  renderEpisodes(currentAnime.num_episodes || 12);
+  updatePlayer();
 }
 
-function updatePlayerEmbed() {
+function renderEpisodes(totalEps) {
+  const grid = document.getElementById('episodeGrid');
+  grid.innerHTML = '';
+  const count = Math.min(totalEps > 0 ? totalEps : 12, 500);
+
+  for (let i = 1; i <= count; i++) {
+    const btn = document.createElement('button');
+    btn.className = `ep-btn ${i === currentEp ? 'active' : ''}`;
+    btn.innerText = `Ep ${i}`;
+    btn.onclick = () => {
+      currentEp = i;
+      document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updatePlayer();
+    };
+    grid.appendChild(btn);
+  }
+}
+
+function updatePlayer() {
   const iframe = document.getElementById('mainIframe');
+  const externalBtn = document.getElementById('externalStreamBtn');
+  const slug = slugify(currentAnime.title);
   let embedUrl = "";
 
   if (currentServer === 1) {
-    embedUrl = `https://vidsrc.to/embed/anime/${currentSlug}/${currentEp}`;
+    embedUrl = `https://vidsrc.cc/v2/embed/anime/${slug}/${currentEp}`;
   } else if (currentServer === 2) {
-    embedUrl = `https://2embed.org/embed/anime/${currentSlug}/${currentEp}`;
+    embedUrl = `https://2embed.org/embed/anime/${slug}/${currentEp}`;
   } else {
-    embedUrl = `https://anime.consun.workers.dev/?title=${currentSlug}&ep=${currentEp}`;
+    embedUrl = `https://em.gogoanime.bid/streaming.php?id=${slug}-episode-${currentEp}`;
   }
 
   iframe.src = embedUrl;
+  externalBtn.href = embedUrl;
 }
 
-function switchServer(srvNum) {
-  currentServer = srvNum;
-  document.getElementById('srv1').classList.toggle('active', srvNum === 1);
-  document.getElementById('srv2').classList.toggle('active', srvNum === 2);
-  updatePlayerEmbed();
+function switchServer(srv) {
+  currentServer = srv;
+  document.querySelectorAll('.srv-btn').forEach((btn, idx) => {
+    btn.classList.toggle('active', idx + 1 === srv);
+  });
+  updatePlayer();
 }
 
-function changeEpisode(epNum) {
-  currentEp = epNum;
-  updatePlayerEmbed();
-}
-
-function closePlayer() {
-  document.getElementById('playerModal').style.display = 'none';
+function showCatalogPage() {
+  document.getElementById('watchPage').style.display = 'none';
+  document.getElementById('catalogPage').style.display = 'block';
   document.getElementById('mainIframe').src = '';
 }
 

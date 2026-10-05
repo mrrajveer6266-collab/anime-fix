@@ -3,312 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ANIME FIX - Stream & Discover Anime</title>
-  <style>
-    :root {
-      --bg: #0d0e12;
-      --card-bg: #181a20;
-      --primary: #ff6600;
-      --primary-hover: #ff8533;
-      --text: #ffffff;
-      --subtext: #a0a0a0;
-      --border: #262933;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 40px; }
-
-    header {
-      background: #121318;
-      border-bottom: 2px solid var(--primary);
-      padding: 15px 20px;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(255,102,0,0.15);
-    }
-    .logo {
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      color: #fff;
-    }
-    .logo b { color: var(--primary); }
-    .tagline { font-size: 11px; color: var(--subtext); letter-spacing: 3px; margin-top: 3px; }
-
-    .container { max-width: 1200px; margin: 0 auto; padding: 20px 15px; }
-
-    .controls {
-      background: var(--card-bg);
-      padding: 18px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      margin-bottom: 25px;
-    }
-    .search-row { display: flex; gap: 10px; margin-bottom: 15px; }
-    .search-row input {
-      flex: 1;
-      padding: 12px 16px;
-      background: #0d0e12;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: #fff;
-      font-size: 15px;
-      outline: none;
-    }
-    .search-row input:focus { border-color: var(--primary); }
-    .search-row button {
-      padding: 12px 24px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .search-row button:hover { background: var(--primary-hover); }
-
-    .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-    }
-    .filter-grid select {
-      padding: 10px;
-      background: #0d0e12;
-      color: #fff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 13px;
-      outline: none;
-      cursor: pointer;
-    }
-    .filter-grid select:focus { border-color: var(--primary); }
-    .reset-btn {
-      background: #2a2d38;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      padding: 10px;
-    }
-    .reset-btn:hover { background: #3a3f50; }
-
-    #statusText { text-align: center; margin-bottom: 20px; color: var(--subtext); font-size: 14px; }
-
-    .anime-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-      gap: 18px;
-    }
-    .anime-card {
-      background: var(--card-bg);
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-    .anime-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--primary);
-    }
-    .card-img-wrap {
-      position: relative;
-      width: 100%;
-      height: 240px;
-      overflow: hidden;
-    }
-    .card-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .card-score {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(0,0,0,0.8);
-      color: #ffb703;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-    .card-info { padding: 12px; display: flex; flex-direction: column; flex: 1; }
-    .card-title {
-      font-size: 14px;
-      font-weight: bold;
-      color: #fff;
-      margin-bottom: 6px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      height: 38px;
-    }
-    .card-meta { font-size: 12px; color: var(--subtext); margin-bottom: 12px; }
-    .watch-btn {
-      margin-top: auto;
-      width: 100%;
-      padding: 10px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-    .watch-btn:hover { background: var(--primary-hover); }
-
-    #playerModal {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.92);
-      z-index: 999999;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 15px;
-    }
-    .player-box {
-      width: 100%;
-      max-width: 900px;
-      background: #181a20;
-      border-radius: 12px;
-      border: 1px solid var(--primary);
-      overflow: hidden;
-      box-shadow: 0 0 30px rgba(255,102,0,0.3);
-    }
-    .player-header {
-      padding: 12px 18px;
-      background: #101115;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
-    .player-title { font-size: 15px; color: #fff; font-weight: bold; }
-    .player-controls-top { display: flex; gap: 8px; align-items: center; }
-    .srv-btn {
-      background: #2b2e3a;
-      color: #fff;
-      border: 1px solid #444;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .srv-btn.active { background: var(--primary); border-color: var(--primary); }
-    .close-btn {
-      background: #ff4d4d;
-      color: #fff;
-      border: none;
-      padding: 5px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .iframe-container {
-      position: relative;
-      width: 100%;
-      padding-bottom: 56.25%;
-      background: #000;
-    }
-    .iframe-container iframe {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      border: none;
-    }
-    .ep-bar {
-      padding: 12px;
-      background: #121318;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      overflow-x: auto;
-    }
-    .ep-bar label { font-size: 13px; color: var(--subtext); }
-    .ep-bar select {
-      background: #181a20;
-      color: #fff;
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 4px;
-    }
-
-    @media(max-width: 600px) {
-      .anime-grid { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 10px; }
-      .card-img-wrap { height: 190px; }
-      .search-row { flex-direction: column; }
-    }
-  </style>
+  <title>Anime Fix - Stream High Quality Anime</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header>
-    <div class="logo">ANIME <b>FIX</b></div>
-    <div class="tagline">DISCOVER • STREAM • EXPLORE</div>
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="logo" onclick="showCatalogPage()">🎬 Anime<span>Fix</span></div>
+    <div class="search-bar-top">
+      <input type="text" id="searchInput" placeholder="Search anime (e.g., Naruto, One Piece)...">
+      <button onclick="handleSearch()">🔍</button>
+    </div>
   </header>
 
-  <div class="container">
-    <div class="controls">
-      <div class="search-row">
-        <input type="text" id="searchInput" placeholder="Search any anime (e.g. Naruto, One Piece)...">
-        <button onclick="handleSearch()">Search</button>
-      </div>
-      <div class="filter-grid">
-        <select id="typeFilter" onchange="applyFilters()">
-          <option value="">All Types</option>
-          <option value="tv">TV Series</option>
-          <option value="movie">Movie</option>
-          <option value="ova">OVA</option>
-        </select>
-        <select id="statusFilter" onchange="applyFilters()">
-          <option value="">All Status</option>
-          <option value="airing">Currently Airing</option>
-          <option value="complete">Finished</option>
-        </select>
-        <select id="ratingFilter" onchange="applyFilters()">
-          <option value="">Any Rating</option>
-          <option value="9">⭐ 9+ Rating</option>
-          <option value="8">⭐ 8+ Rating</option>
-          <option value="7">⭐ 7+ Rating</option>
-        </select>
-        <button class="reset-btn" onclick="resetFilters()">↩ Reset</button>
+  <!-- PAGE 1: CATALOG PAGE -->
+  <main id="catalogPage" class="container">
+    <div class="hero-section">
+      <h1>Find & Stream Unlimited Anime</h1>
+      <p id="statusText">⏳ Fetching latest anime catalog...</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-box">
+      <select id="typeFilter" onchange="applyFilters()">
+        <option value="">All Types</option>
+        <option value="tv">TV Series</option>
+        <option value="movie">Movies</option>
+        <option value="ova">OVA</option>
+      </select>
+      <select id="ratingFilter" onchange="applyFilters()">
+        <option value="">Any Rating</option>
+        <option value="8">⭐ 8.0+</option>
+        <option value="7">⭐ 7.0+</option>
+      </select>
+      <button class="reset-btn" onclick="resetFilters()">🔄 Reset</button>
+    </div>
+
+    <!-- Anime Grid Container -->
+    <div id="animeGrid" class="anime-grid"></div>
+  </main>
+
+  <!-- PAGE 2: FULLSCREEN WATCH INTERFACE -->
+  <main id="watchPage" class="watch-container" style="display: none;">
+    <button class="back-btn" onclick="showCatalogPage()">⬅ Back to Catalog</button>
+
+    <!-- HD Video Player Container -->
+    <div class="player-wrapper">
+      <iframe id="mainIframe" allowfullscreen src="" frameborder="0"></iframe>
+    </div>
+
+    <!-- Video Server & External Stream Controls -->
+    <div class="server-controls">
+      <span class="server-label">Servers:</span>
+      <button class="srv-btn active" id="srv1" onclick="switchServer(1)">Server 1 (VidSrc)</button>
+      <button class="srv-btn" id="srv2" onclick="switchServer(2)">Server 2 (Embed)</button>
+      <button class="srv-btn" id="srv3" onclick="switchServer(3)">Server 3 (Gogo)</button>
+      <a id="externalStreamBtn" class="direct-stream-btn" target="_blank" href="#">🚀 Open Direct Stream</a>
+    </div>
+
+    <!-- Anime Details Section -->
+    <div class="anime-details-box">
+      <img id="detailPoster" src="" alt="Poster" class="detail-poster">
+      <div class="detail-info">
+        <h2 id="detailTitle">Anime Title</h2>
+        <p id="detailMeta" class="detail-meta">Loading details...</p>
+        <p id="detailSynopsis" class="detail-synopsis"></p>
       </div>
     </div>
 
-    <div id="statusText">Loading Top Anime...</div>
-    <div class="anime-grid" id="animeGrid"></div>
-  </div>
-
-  <div id="playerModal">
-    <div class="player-box">
-      <div class="player-header">
-        <div class="player-title" id="playerTitle">Watching Anime</div>
-        <div class="player-controls-top">
-          <button class="srv-btn active" id="srv1" onclick="switchServer(1)">Server 1</button>
-          <button class="srv-btn" id="srv2" onclick="switchServer(2)">Server 2</button>
-          <button class="close-btn" onclick="closePlayer()">✕ Close</button>
-        </div>
-      </div>
-      <div class="iframe-container">
-        <iframe id="mainIframe" src="" allowfullscreen referrer-policy="no-referrer"></iframe>
-      </div>
-      <div class="ep-bar">
-        <label>Select Episode:</label>
-        <select id="epSelector" onchange="changeEpisode(this.value)"></select>
-      </div>
+    <!-- Episode Grid Section -->
+    <div class="episodes-section">
+      <h3>Select Episode</h3>
+      <div id="episodeGrid" class="episode-grid"></div>
     </div>
-  </div>
+  </main>
 
-  <script src="/script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
