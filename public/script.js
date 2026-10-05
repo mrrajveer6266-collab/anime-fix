@@ -5,11 +5,8 @@ let currentAnime = null;
 let currentEp = 1;
 let currentServer = 1;
 
-function slugify(text) {
-  return text.toString().toLowerCase().trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-');
+function cleanAnimeTitle(title) {
+  return title.replace(/[^a-zA-Z0-9 ]/g, "").trim();
 }
 
 async function loadTopAnime(isLoadMore = false) {
@@ -19,7 +16,7 @@ async function loadTopAnime(isLoadMore = false) {
     currentOffset = 0;
     rawAnimeList = [];
     currentSearchQuery = "";
-    if (status) status.innerHTML = '⏳ Fetching latest anime catalog...';
+    if (status) status.innerHTML = '⏳ Fetching anime catalog...';
   }
 
   try {
@@ -34,7 +31,7 @@ async function loadTopAnime(isLoadMore = false) {
     }
   } catch (err) {
     console.error(err);
-    if (status) status.innerHTML = '⚠️ Network error loading anime.';
+    if (status) status.innerHTML = '⚠️️ Network error loading anime.';
   }
 }
 
@@ -52,7 +49,7 @@ function renderAnimeList(list) {
   list.forEach(item => {
     const title = item.title;
     const score = item.mean ? item.mean : 'N/A';
-    const eps = item.num_episodes ? `${item.num_episodes} Ep` : 'Airing';
+    const eps = item.num_episodes ? `${item.num_episodes} Ep` : 'TV';
     const img = item.main_picture?.large || item.main_picture?.medium || 'https://via.placeholder.com/300x400';
 
     const card = document.createElement('div');
@@ -64,7 +61,7 @@ function renderAnimeList(list) {
       </div>
       <div class="card-info">
         <div class="card-title">${title}</div>
-        <div class="card-meta">📺 ${eps} • ${(item.media_type || 'TV').toUpperCase()}</div>
+        <div class="card-meta">📺 ${eps}</div>
         <button class="watch-btn" onclick="openWatchPage(${item.id})">
           ▶ Watch Now
         </button>
@@ -77,8 +74,8 @@ function renderAnimeList(list) {
   if (!loadMoreBtn) {
     loadMoreBtn = document.createElement('button');
     loadMoreBtn.id = 'loadMoreBtn';
-    loadMoreBtn.style.cssText = 'grid-column: 1/-1; margin: 30px auto; display: block; padding: 12px 30px; background: #ff6600; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;';
-    loadMoreBtn.innerText = '⬇ Load More Anime';
+    loadMoreBtn.style.cssText = 'grid-column: 1/-1; margin: 20px auto; display: block; padding: 10px 24px; background: #ff6600; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;';
+    loadMoreBtn.innerText = '⬇ Load More';
     loadMoreBtn.onclick = handleLoadMore;
   }
   grid.appendChild(loadMoreBtn);
@@ -134,7 +131,7 @@ function openWatchPage(animeId) {
 
   document.getElementById('detailTitle').innerText = currentAnime.title;
   document.getElementById('detailPoster').src = currentAnime.main_picture?.large || currentAnime.main_picture?.medium;
-  document.getElementById('detailMeta').innerText = `⭐ ${currentAnime.mean || 'N/A'} • ${currentAnime.num_episodes || 12} Episodes • ${(currentAnime.media_type || 'TV').toUpperCase()}`;
+  document.getElementById('detailMeta').innerText = `⭐ ${currentAnime.mean || 'N/A'} • ${currentAnime.num_episodes || 12} Episodes`;
   document.getElementById('detailSynopsis').innerText = currentAnime.synopsis || "Stream all episodes in high definition.";
 
   renderEpisodes(currentAnime.num_episodes || 12);
@@ -163,15 +160,16 @@ function renderEpisodes(totalEps) {
 function updatePlayer() {
   const iframe = document.getElementById('mainIframe');
   const externalBtn = document.getElementById('externalStreamBtn');
-  const slug = slugify(currentAnime.title);
+  
+  const titleSlug = encodeURIComponent(cleanAnimeTitle(currentAnime.title));
   let embedUrl = "";
 
   if (currentServer === 1) {
-    embedUrl = `https://vidsrc.cc/v2/embed/anime/${slug}/${currentEp}`;
+    embedUrl = `https://vidsrc.pro/embed/anime/${currentAnime.id}/${currentEp}`;
   } else if (currentServer === 2) {
-    embedUrl = `https://2embed.org/embed/anime/${slug}/${currentEp}`;
+    embedUrl = `https://2embed.org/embed/anime?title=${titleSlug}&ep=${currentEp}`;
   } else {
-    embedUrl = `https://em.gogoanime.bid/streaming.php?id=${slug}-episode-${currentEp}`;
+    embedUrl = `https://autoembed.to/anime/mal/${currentAnime.id}-${currentEp}`;
   }
 
   iframe.src = embedUrl;
