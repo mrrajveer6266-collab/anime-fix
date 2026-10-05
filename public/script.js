@@ -1,48 +1,176 @@
-(function() {
-  function slugify(text) {
-    return text.toString().toLowerCase().trim()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-');
+let rawAnimeList = [];
+let currentSlug = "";
+let currentEp = 1;
+let currentServer = 1;
+
+function slugify(text) {
+  return text.toString().toLowerCase().trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+}
+
+// 1. Fetch Anime from Jikan API
+async function loadTopAnime() {
+  const grid = document.getElementById('animeGrid');
+  const status = document.getElementById('statusText');
+  status.innerHTML = '⏳ Fetching latest anime catalog...';
+
+  try {
+    const res = await fetch('https://api.jikan.moe/v4/top/anime?limit=24');
+    const data = await res.json();
+    
+    if (data && data.data) {
+      rawAnimeList = data.data;
+      renderAnimeList(rawAnimeList);
+      status.innerHTML = `Showing Top <b>${rawAnimeList.length}</b> Trending Anime`;
+    } else {
+      status.innerHTML = 'Failed to load anime. Please refresh.';
+    }
+  } catch (err) {
+    console.error(err);
+    status.innerHTML = '⚠️ Network error loading anime.';
+  }
+}
+
+// 2. Render Cards
+function renderAnimeList(list) {
+  const grid = document.getElementById('animeGrid');
+  grid.innerHTML = '';
+
+  if (list.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#aaa;">No anime found matching criteria.</div>';
+    return;
   }
 
-  // Override or create showAnime function
-  window.showAnime = function(id) {
-    var title = "Sousou no Frieren";
-    var target = event ? event.target.closest('.card') : null;
-    
-    if (target) {
-      var h3 = target.querySelector('h3');
-      if (h3) title = h3.innerText.trim();
+  list.forEach(item => {
+    const title = item.title_english || item.title;
+    const score = item.score ? item.score : 'N/A';
+    const eps = item.episodes ? `${item.episodes} Ep` : 'Airing';
+    const img = item.images?.jpg?.large_image_url || item.images?.jpg?.image_url;
+
+    const card = document.createElement('div');
+    card.className = 'anime-card';
+    card.innerHTML = `
+      <div class="card-img-wrap">
+        <img src="${img}" alt="${title}" loading="lazy">
+        <div class="card-score">⭐ ${score}</div>
+      </div>
+      <div class="card-info">
+        <div class="card-title">${title}</div>
+        <div class="card-meta">📺 ${eps} • ${item.type || 'TV'}</div>
+        <button class="watch-btn" onclick="openPlayer('${title.replace(/'/g, "\\'")}', ${item.episodes || 12})">
+          ▶ Watch Now
+        </button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// 3. Search Anime
+async function handleSearch() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (!query) { loadTopAnime(); return; }
+
+  const status = document.getElementById('statusText');
+  status.innerHTML = `🔍 Searching for "${query}"...`;
+
+  try {
+    const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=24`);
+    const data = await res.json();
+    if (data && data.data) {
+      rawAnimeList = data.data;
+      renderAnimeList(rawAnimeList);
+      status.innerHTML = `Found <b>${rawAnimeList.length}</b> results for "${query}"`;
     }
+  } catch (e) {
+    status.innerHTML = 'Error searching anime.';
+  }
+}
 
-    var slug = slugify(title);
-    var epNum = 1;
-    var mainEmbed = "https://em.gogoanime.bid/streaming.php?id=" + slug + "-episode-" + epNum;
-    var backupEmbed = "https://vidsrc.to/embed/anime/" + slug + "/" + epNum;
+// 4. Filters
+function applyFilters() {
+  const type = document.getElementById('typeFilter').value;
+  const statusFilter = document.getElementById('statusFilter').value;
+  const rating = document.getElementById('ratingFilter').value;
 
-    // Existing modal remove if open
-    var oldModal = document.getElementById('animeFixVideoModal');
-    if (oldModal) oldModal.remove();
+  let filtered = rawAnimeList.filter(item => {
+    if (type && (item.type || '').toLowerCase() !== type) return false;
+    if (statusFilter && (item.status || '').toLowerCase().indexOf(statusFilter) === -1) return false;
+    if (rating && (item.score || 0) < Number(rating)) return false;
+    return true;
+  });
 
-    var modal = document.createElement('div');
-    modal.id = 'animeFixVideoModal';
-    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; box-sizing:border-box;';
+  renderAnimeList(filtered);
+}
 
-    modal.innerHTML = 
-      '<div style="width:100%; max-width:800px; background:#1b1b1b; border-radius:12px; overflow:hidden; border:1px solid #ff6600;">' +
-        '<div style="padding:12px 15px; background:#242424; display:flex; justify-content:space-between; align-items:center;">' +
-          '<h3 style="color:#fff; margin:0; font-size:16px;">▶ Watching: ' + title + '</h3>' +
-          '<div>' +
-            '<button onclick="document.getElementById(\'videoIframe\').src=\'' + backupEmbed + '\'" style="background:#ff6600; color:#fff; border:none; padding:5px 10px; border-radius:4px; margin-right:8px; cursor:pointer; font-weight:bold;">Server 2</button>' +
-            '<button onclick="document.getElementById(\'animeFixVideoModal\').remove();" style="background:#ff4d4d; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">✕ Close</button>' +
-          '</div>' +
-        '</div>' +
-        '<div style="position:relative; width:100%; height:0; padding-bottom:56.25%; background:#000;">' +
-          '<iframe id="videoIframe" src="' + mainEmbed + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen referrer-policy="no-referrer"></iframe>' +
-        '</div>' +
-      '</div>';
+function resetFilters() {
+  document.getElementById('typeFilter').value = '';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('ratingFilter').value = '';
+  document.getElementById('searchInput').value = '';
+  loadTopAnime();
+}
 
-    document.body.appendChild(modal);
-  };
-})();
+// 5. Stream Player System
+function openPlayer(title, totalEps) {
+  currentSlug = slugify(title);
+  currentEp = 1;
+  currentServer = 1;
+
+  document.getElementById('playerTitle').innerText = `Watching: ${title}`;
+  
+  // Populate Episode Dropdown
+  const epSelector = document.getElementById('epSelector');
+  epSelector.innerHTML = '';
+  const epCount = totalEps > 0 ? Math.min(totalEps, 500) : 24;
+  
+  for (let i = 1; i <= epCount; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.innerText = `Episode ${i}`;
+    epSelector.appendChild(opt);
+  }
+
+  updatePlayerEmbed();
+  document.getElementById('playerModal').style.display = 'flex';
+}
+
+function updatePlayerEmbed() {
+  const iframe = document.getElementById('mainIframe');
+  let embedUrl = "";
+
+  if (currentServer === 1) {
+    embedUrl = `https://em.gogoanime.bid/streaming.php?id=${currentSlug}-episode-${currentEp}`;
+  } else {
+    embedUrl = `https://vidsrc.to/embed/anime/${currentSlug}/${currentEp}`;
+  }
+
+  iframe.src = embedUrl;
+}
+
+function switchServer(srvNum) {
+  currentServer = srvNum;
+  document.getElementById('srv1').classList.toggle('active', srvNum === 1);
+  document.getElementById('srv2').classList.toggle('active', srvNum === 2);
+  updatePlayerEmbed();
+}
+
+function changeEpisode(epNum) {
+  currentEp = epNum;
+  updatePlayerEmbed();
+}
+
+function closePlayer() {
+  document.getElementById('playerModal').style.display = 'none';
+  document.getElementById('mainIframe').src = '';
+}
+
+// Enter Key Search Bind
+document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') handleSearch();
+});
+
+// Initial Load
+window.onload = loadTopAnime;
